@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <style>
         :root {
             --primary-color: #4a6cf7;
@@ -1109,6 +1110,11 @@
             border-radius: 15px;
             padding: 20px;
             text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .library-stat-card:hover {
+            transform: translateY(-5px);
         }
 
         .library-stat-value {
@@ -1195,6 +1201,11 @@
             border-radius: 15px;
             padding: 20px;
             margin-bottom: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .announcement-card:hover {
+            transform: translateY(-5px);
         }
 
         .announcement-title {
@@ -1669,41 +1680,44 @@
             cursor: pointer;
         }
 
-        /* Quick Actions */
-        .quick-actions {
+        /* Floating Action Buttons */
+        .floating-actions {
             position: fixed;
             bottom: 30px;
             right: 30px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 15px;
             z-index: 50;
         }
 
-        .quick-action-btn {
-            width: 50px;
-            height: 50px;
+        .fab {
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
-            background: white;
+            background: linear-gradient(135deg, var(--amrita-orange), var(--amrita-blue));
+            color: white;
             border: none;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             transition: all 0.3s ease;
-            color: var(--amrita-orange);
-            font-size: 20px;
+            font-size: 24px;
         }
 
-        .quick-action-btn:hover {
+        .fab:hover {
             transform: scale(1.1);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
         }
 
-        .quick-action-btn.main {
-            background: linear-gradient(135deg, var(--amrita-orange), var(--amrita-blue));
-            color: white;
+        .fab.secondary {
+            width: 48px;
+            height: 48px;
+            font-size: 20px;
+            background: white;
+            color: var(--amrita-orange);
         }
 
         /* Progress Bars */
@@ -1849,6 +1863,200 @@
             background: #e55a2b;
             transform: scale(1.05);
         }
+
+        /* Enhanced Library Search */
+        .library-search-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .library-search-input {
+            width: 100%;
+            padding: 15px 20px 15px 50px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .library-search-input:focus {
+            outline: none;
+            border-color: var(--amrita-orange);
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+        }
+
+        .library-search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 18px;
+        }
+
+        .library-filter-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .library-filter-btn {
+            padding: 8px 15px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .library-filter-btn.active {
+            background: var(--amrita-orange);
+            color: white;
+            border-color: var(--amrita-orange);
+        }
+
+        .library-filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Enhanced Book Card */
+        .book-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .book-card .book-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .book-card:hover .book-actions {
+            opacity: 1;
+        }
+
+        .book-action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .book-action-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .book-action-btn.issue {
+            color: var(--success-color);
+        }
+
+        .book-action-btn.return {
+            color: var(--warning-color);
+        }
+
+        .book-action-btn.edit {
+            color: var(--primary-color);
+        }
+
+        /* Enhanced Message System */
+        .message-compose-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .message-recipients-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .message-recipient-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 10px;
+            background: #f1f5f9;
+            border-radius: 20px;
+            font-size: 14px;
+            gap: 5px;
+        }
+
+        .message-recipient-chip .remove {
+            cursor: pointer;
+            color: var(--danger-color);
+        }
+
+        .message-subject-input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .message-content-input {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            min-height: 150px;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+
+        .message-options-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .message-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .message-send-options {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Pulse Animation */
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(255, 107, 53, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 107, 53, 0);
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
     </style>
 </head>
 <body>
@@ -1859,7 +2067,7 @@
 
     <!-- Login Page -->
     <div class="login-container" id="loginPage">
-        <div class="login-card">
+        <div class="login-card animate__animated animate__fadeIn">
             <div class="login-logo">
                 <i class="bi bi-mortarboard-fill"></i>
                 <h2>Amrita Vidyalayam</h2>
@@ -1874,10 +2082,6 @@
                 <div class="user-type-btn" data-role="teacher">
                     <i class="bi bi-person-workspace"></i>
                     <div>Teacher</div>
-                </div>
-                <div class="user-type-btn" data-role="library">
-                    <i class="bi bi-book"></i>
-                    <div>Library</div>
                 </div>
                 <div class="user-type-btn" data-role="student">
                     <i class="bi bi-book"></i>
@@ -1958,7 +2162,7 @@
             <!-- Dashboard Content -->
             <div id="dashboardContent">
                 <!-- Welcome Section -->
-                <div class="dashboard-welcome">
+                <div class="dashboard-welcome animate__animated animate__fadeIn">
                     <div class="welcome-content">
                         <h1 class="welcome-title">Welcome back, <span id="welcomeName">John</span>!</h1>
                         <p class="welcome-subtitle">Here's what's happening at Amrita Vidyalayam today.</p>
@@ -1974,7 +2178,7 @@
                 <!-- Content Grid -->
                 <div class="content-grid">
                     <!-- Recent Activities -->
-                    <div class="content-card">
+                    <div class="content-card animate__animated animate__fadeInUp">
                         <div class="card-header">
                             <h3 class="card-title">Recent Activities</h3>
                             <button class="card-action">View All</button>
@@ -1985,10 +2189,10 @@
                     </div>
 
                     <!-- Announcements -->
-                    <div class="content-card">
+                    <div class="content-card animate__animated animate__fadeInUp" style="animation-delay: 0.1s">
                         <div class="card-header">
                             <h3 class="card-title">Announcements</h3>
-                            <button class="card-action" onclick="showAddAnnouncementModal()">Add New</button>
+                            <button class="card-action" id="viewAllAnnouncementsBtn">View All</button>
                         </div>
                         <div id="announcementsList">
                             <!-- Announcements will be dynamically generated -->
@@ -2005,10 +2209,10 @@
 
             <!-- Students Content -->
             <div id="studentsContent" style="display: none;">
-                <div class="content-card">
+                <div class="content-card animate__animated animate__fadeIn">
                     <div class="card-header">
                         <h3 class="card-title">Students Management</h3>
-                        <button class="btn btn-primary" onclick="showAddStudentModal()">Add Student</button>
+                        <button class="btn btn-primary" id="addStudentBtn" onclick="showAddStudentModal()">Add Student</button>
                     </div>
                     <div class="tabs-container">
                         <div class="tabs-header">
@@ -2086,10 +2290,10 @@
 
             <!-- Teachers Content -->
             <div id="teachersContent" style="display: none;">
-                <div class="content-card">
+                <div class="content-card animate__animated animate__fadeIn">
                     <div class="card-header">
                         <h3 class="card-title">Teachers Management</h3>
-                        <button class="btn btn-primary" onclick="showAddTeacherModal()">Add Teacher</button>
+                        <button class="btn btn-primary" id="addTeacherBtn" onclick="showAddTeacherModal()">Add Teacher</button>
                     </div>
                     <div class="table-responsive">
                         <table class="data-table">
@@ -2114,10 +2318,10 @@
 
             <!-- Classes Content -->
             <div id="classesContent" style="display: none;">
-                <div class="content-card">
+                <div class="content-card animate__animated animate__fadeIn">
                     <div class="card-header">
                         <h3 class="card-title">Classes Management</h3>
-                        <button class="btn btn-primary" onclick="showAddClassModal()">Add Class</button>
+                        <button class="btn btn-primary" id="addClassBtn" onclick="showAddClassModal()">Add Class</button>
                     </div>
                     <div class="table-responsive">
                         <table class="data-table">
@@ -2141,7 +2345,7 @@
 
             <!-- Attendance Content -->
             <div id="attendanceContent" style="display: none;">
-                <div class="content-card">
+                <div class="content-card animate__animated animate__fadeIn">
                     <div class="card-header">
                         <h3 class="card-title">Attendance Management</h3>
                         <button class="btn btn-primary" onclick="showMarkAttendanceModal()">Mark Attendance</button>
@@ -2238,7 +2442,7 @@
 
             <!-- Timetable Content -->
             <div id="timetableContent" style="display: none;">
-                <div class="content-card">
+                <div class="content-card animate__animated animate__fadeIn">
                     <div class="card-header">
                         <h3 class="card-title">Timetable Management</h3>
                         <button class="btn btn-primary" onclick="showAddTimetableModal()">Add Timetable</button>
@@ -2333,7 +2537,7 @@
 
             <!-- Marks Content -->
             <div id="marksContent" style="display: none;">
-                <div class="content-card">
+                <div class="content-card animate__animated animate__fadeIn">
                     <div class="card-header">
                         <h3 class="card-title">Marks Management</h3>
                         <button class="btn btn-primary" onclick="showAddMarksModal()">Add Marks</button>
@@ -2390,7 +2594,7 @@
 
             <!-- Reports Content -->
             <div id="reportsContent" style="display: none;">
-                <div class="content-card">
+                <div class="content-card animate__animated animate__fadeIn">
                     <div class="card-header">
                         <h3 class="card-title">Report Management</h3>
                         <button class="btn btn-primary" onclick="showAddReportModal()">Add Report</button>
@@ -2427,7 +2631,7 @@
 
             <!-- Bus Tracking Content -->
             <div id="busTrackingContent" style="display: none;">
-                <div class="content-card">
+                <div class="content-card animate__animated animate__fadeIn">
                     <div class="card-header">
                         <h3 class="card-title">Bus Tracking System</h3>
                         <button class="btn btn-primary" onclick="refreshBusLocations()">Refresh Locations</button>
@@ -2524,25 +2728,25 @@
 
             <!-- Library Content -->
             <div id="libraryContent" style="display: none;">
-                <div class="content-card">
+                <div class="content-card animate__animated animate__fadeIn">
                     <div class="card-header">
                         <h3 class="card-title">Library Management</h3>
                         <button class="btn btn-primary" id="addBookBtn" onclick="showAddBookModal()">Add Book</button>
                     </div>
                     <div class="library-stats">
-                        <div class="library-stat-card">
+                        <div class="library-stat-card animate__animated animate__fadeInUp">
                             <div class="library-stat-value" id="totalBooks">1,250</div>
                             <div class="library-stat-label">Total Books</div>
                         </div>
-                        <div class="library-stat-card">
+                        <div class="library-stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.1s">
                             <div class="library-stat-value" id="availableBooks">980</div>
                             <div class="library-stat-label">Available</div>
                         </div>
-                        <div class="library-stat-card">
+                        <div class="library-stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.2s">
                             <div class="library-stat-value" id="issuedBooks">270</div>
                             <div class="library-stat-label">Issued</div>
                         </div>
-                        <div class="library-stat-card">
+                        <div class="library-stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.3s">
                             <div class="library-stat-value" id="overdueBooks">15</div>
                             <div class="library-stat-label">Overdue</div>
                         </div>
@@ -2556,9 +2760,18 @@
                         </div>
                         
                         <div class="tab-content active" id="all-books">
-                            <div class="form-group">
-                                <label class="form-label">Search Books</label>
-                                <input type="text" class="form-control-lg" id="bookSearch" placeholder="Search by title, author, or ISBN">
+                            <div class="library-search-container">
+                                <i class="bi bi-search library-search-icon"></i>
+                                <input type="text" class="library-search-input" id="bookSearch" placeholder="Search by title, author, or ISBN">
+                            </div>
+                            <div class="library-filter-container">
+                                <button class="library-filter-btn active" data-filter="all">All</button>
+                                <button class="library-filter-btn" data-filter="fiction">Fiction</button>
+                                <button class="library-filter-btn" data-filter="non-fiction">Non-Fiction</button>
+                                <button class="library-filter-btn" data-filter="reference">Reference</button>
+                                <button class="library-filter-btn" data-filter="textbook">Textbook</button>
+                                <button class="library-filter-btn" data-filter="magazine">Magazine</button>
+                                <button class="library-filter-btn" data-filter="journal">Journal</button>
                             </div>
                             <div class="book-grid" id="allBooksGrid">
                                 <!-- Books will be dynamically generated -->
@@ -2689,7 +2902,7 @@
 
             <!-- Driver Content (Only for Driver Role) -->
             <div id="driverContent" style="display: none;">
-                <div class="content-card">
+                <div class="content-card animate__animated animate__fadeIn">
                     <div class="card-header">
                         <h3 class="card-title">Bus Location Sharing</h3>
                         <button class="btn btn-primary" id="shareLocationBtn" onclick="toggleLocationSharing()">Share Location</button>
@@ -2743,7 +2956,7 @@
 
             <!-- Messages Content -->
             <div id="messagesContent" style="display: none;">
-                <div class="content-card">
+                <div class="content-card animate__animated animate__fadeIn">
                     <div class="card-header">
                         <h3 class="card-title">Messages</h3>
                         <button class="btn btn-primary" onclick="showComposeMessageModal()">Compose</button>
@@ -2753,19 +2966,19 @@
                             <div class="list-group">
                                 <a href="#" class="list-group-item list-group-item-action active">
                                     <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">Jane Davis</h6>
+                                        <h6 class="mb-1">Admin</h6>
                                         <small>3 mins ago</small>
                                     </div>
-                                    <p class="mb-1">Hi, I wanted to discuss Alice's progress...</p>
-                                    <small>Mathematics Teacher</small>
+                                    <p class="mb-1">Please submit your weekly reports...</p>
+                                    <small>School Administration</small>
                                 </a>
                                 <a href="#" class="list-group-item list-group-item-action">
                                     <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">Robert Miller</h6>
+                                        <h6 class="mb-1">Class 5-A Students</h6>
                                         <small>1 hour ago</small>
                                     </div>
-                                    <p class="mb-1">The science project results are ready...</p>
-                                    <small>Science Teacher</small>
+                                    <p class="mb-1">Thank you for the extra help...</p>
+                                    <small>Multiple Students</small>
                                 </a>
                                 <a href="#" class="list-group-item list-group-item-action">
                                     <div class="d-flex w-100 justify-content-between">
@@ -2781,40 +2994,40 @@
                             <div class="card">
                                 <div class="card-header">
                                     <div class="d-flex align-items-center">
-                                        <div class="user-avatar me-2">JD</div>
+                                        <div class="user-avatar me-2">AD</div>
                                         <div>
-                                            <h6 class="mb-0">Jane Davis</h6>
-                                            <small>Mathematics Teacher</small>
+                                            <h6 class="mb-0">Admin</h6>
+                                            <small>School Administration</small>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="card-body">
                                     <div class="message-container">
                                         <div class="message">
-                                            <div class="message-avatar">JD</div>
+                                            <div class="message-avatar">AD</div>
                                             <div class="message-content">
-                                                <div class="message-text">Hi, I wanted to discuss Alice's progress in mathematics.</div>
+                                                <div class="message-text">Hi, please submit your weekly reports by end of day.</div>
                                                 <div class="message-time">10:30 AM</div>
                                             </div>
                                         </div>
                                         <div class="message sent">
-                                            <div class="message-avatar">YO</div>
+                                            <div class="message-avatar">TC</div>
                                             <div class="message-content">
-                                                <div class="message-text">Hello Jane! Sure, I'd be happy to discuss her progress.</div>
+                                                <div class="message-text">Sure, I'll submit them by 4 PM today.</div>
                                                 <div class="message-time">10:32 AM</div>
                                             </div>
                                         </div>
                                         <div class="message">
-                                            <div class="message-avatar">JD</div>
+                                            <div class="message-avatar">AD</div>
                                             <div class="message-content">
-                                                <div class="message-text">Alice has been doing exceptionally well in her recent tests. She has a natural aptitude for problem-solving.</div>
+                                                <div class="message-text">Thank you. Also, please remember the parent-teacher meeting tomorrow.</div>
                                                 <div class="message-time">10:35 AM</div>
                                             </div>
                                         </div>
                                         <div class="message sent">
-                                            <div class="message-avatar">YO</div>
+                                            <div class="message-avatar">TC</div>
                                             <div class="message-content">
-                                                <div class="message-text">That's wonderful to hear! We're very proud of her.</div>
+                                                <div class="message-text">I'll be there. Is there anything specific I need to prepare?</div>
                                                 <div class="message-time">10:38 AM</div>
                                             </div>
                                         </div>
@@ -2836,7 +3049,7 @@
 
     <!-- Add Student Modal -->
     <div class="modal" id="addStudentModal">
-        <div class="modal-content">
+        <div class="modal-content animate__animated animate__fadeInUp">
             <div class="modal-header">
                 <h3 class="modal-title">Add New Student</h3>
                 <button class="modal-close" onclick="closeModal('addStudentModal')">
@@ -2958,7 +3171,7 @@
 
     <!-- Add Teacher Modal -->
     <div class="modal" id="addTeacherModal">
-        <div class="modal-content">
+        <div class="modal-content animate__animated animate__fadeInUp">
             <div class="modal-header">
                 <h3 class="modal-title">Add New Teacher</h3>
                 <button class="modal-close" onclick="closeModal('addTeacherModal')">
@@ -3068,7 +3281,7 @@
 
     <!-- Add Class Modal -->
     <div class="modal" id="addClassModal">
-        <div class="modal-content">
+        <div class="modal-content animate__animated animate__fadeInUp">
             <div class="modal-header">
                 <h3 class="modal-title">Add New Class</h3>
                 <button class="modal-close" onclick="closeModal('addClassModal')">
@@ -3131,7 +3344,7 @@
 
     <!-- Add Announcement Modal -->
     <div class="modal" id="addAnnouncementModal">
-        <div class="modal-content">
+        <div class="modal-content animate__animated animate__fadeInUp">
             <div class="modal-header">
                 <h3 class="modal-title">Add Announcement</h3>
                 <button class="modal-close" onclick="closeModal('addAnnouncementModal')">
@@ -3182,7 +3395,7 @@
 
     <!-- Compose Message Modal -->
     <div class="modal" id="composeMessageModal">
-        <div class="modal-content">
+        <div class="modal-content animate__animated animate__fadeInUp">
             <div class="modal-header">
                 <h3 class="modal-title">Compose Message</h3>
                 <button class="modal-close" onclick="closeModal('composeMessageModal')">
@@ -3190,33 +3403,35 @@
                 </button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">To</label>
-                    <select class="form-control-lg" id="messageTo">
-                        <option value="">Select Recipient</option>
-                        <!-- Options will be dynamically generated -->
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Subject</label>
-                    <input type="text" class="form-control-lg" id="messageSubject" placeholder="Enter subject">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Message</label>
-                    <textarea class="form-control-lg" id="messageContent" placeholder="Enter message" rows="5"></textarea>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Send Via</label>
-                    <div class="d-flex gap-3">
-                        <div class="form-check">
+                <div class="message-compose-container">
+                    <div class="form-group">
+                        <label class="form-label">To</label>
+                        <select class="form-control-lg" id="messageTo">
+                            <option value="">Select Recipient</option>
+                            <option value="admin">Admin</option>
+                            <option value="class">My Class Students</option>
+                            <option value="parents">My Class Parents</option>
+                            <!-- Options will be dynamically generated based on user role -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Subject</label>
+                        <input type="text" class="form-control-lg" id="messageSubject" placeholder="Enter subject">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Message</label>
+                        <textarea class="form-control-lg" id="messageContent" placeholder="Enter message" rows="5"></textarea>
+                    </div>
+                    <div class="message-options-container">
+                        <div class="message-option">
                             <input class="form-check-input" type="checkbox" id="sendSMS" checked>
                             <label class="form-check-label" for="sendSMS">SMS</label>
                         </div>
-                        <div class="form-check">
+                        <div class="message-option">
                             <input class="form-check-input" type="checkbox" id="sendEmail" checked>
                             <label class="form-check-label" for="sendEmail">Email</label>
                         </div>
-                        <div class="form-check">
+                        <div class="message-option">
                             <input class="form-check-input" type="checkbox" id="sendWhatsApp">
                             <label class="form-check-label" for="sendWhatsApp">WhatsApp</label>
                         </div>
@@ -3232,7 +3447,7 @@
 
     <!-- Add Book Modal -->
     <div class="modal" id="addBookModal">
-        <div class="modal-content">
+        <div class="modal-content animate__animated animate__fadeInUp">
             <div class="modal-header">
                 <h3 class="modal-title">Add New Book</h3>
                 <button class="modal-close" onclick="closeModal('addBookModal')">
@@ -3332,19 +3547,16 @@
         </button>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="quick-actions">
-        <button class="quick-action-btn" onclick="showAddStudentModal()">
+    <!-- Floating Action Buttons (Admin Only) -->
+    <div class="floating-actions" id="floatingActions">
+        <button class="fab secondary" id="fabTeacher" onclick="showAddTeacherModal()" title="Add Teacher">
             <i class="bi bi-person-plus"></i>
         </button>
-        <button class="quick-action-btn" onclick="showAddTeacherModal()">
-            <i class="bi bi-person-workspace"></i>
+        <button class="fab secondary" id="fabStudent" onclick="showAddStudentModal()" title="Add Student">
+            <i class="bi bi-person-plus"></i>
         </button>
-        <button class="quick-action-btn" onclick="showAddAnnouncementModal()">
+        <button class="fab pulse" id="fabAnnouncement" onclick="showAddAnnouncementModal()" title="Add Announcement">
             <i class="bi bi-megaphone"></i>
-        </button>
-        <button class="quick-action-btn main pulse" onclick="showComposeMessageModal()">
-            <i class="bi bi-chat-dots"></i>
         </button>
     </div>
 
@@ -3368,6 +3580,7 @@
         let isDarkTheme = false;
         let busLocationHistory = [];
         let driverLocationHistory = [];
+        let messages = [];
 
         // Sample Data
         const sampleStudents = [
@@ -3378,9 +3591,9 @@
         ];
 
         const sampleTeachers = [
-            { id: 'T001', name: 'Jane Davis', subject: 'Mathematics', classTeacher: '5-A', phone: '+1234567896', email: 'jane@amrita.edu' },
-            { id: 'T002', name: 'Robert Miller', subject: 'Science', classTeacher: '5-B', phone: '+1234567897', email: 'robert@amrita.edu' },
-            { id: 'T003', name: 'Emily Wilson', subject: 'English', classTeacher: '11-A', phone: '+1234567898', email: 'emily@amrita.edu' }
+            { id: 'T001', name: 'Jane Davis', subject: 'Mathematics', classTeacher: '5-A', phone: '+1234567896', email: 'jane@amrita.edu', isClassHead: false },
+            { id: 'T002', name: 'Robert Miller', subject: 'Science', classTeacher: '5-B', phone: '+1234567897', email: 'robert@amrita.edu', isClassHead: false },
+            { id: 'T003', name: 'Emily Wilson', subject: 'English', classTeacher: '11-A', phone: '+1234567898', email: 'emily@amrita.edu', isClassHead: true }
         ];
 
         const sampleClasses = [
@@ -3420,6 +3633,7 @@
         const toast = document.getElementById('toast');
         const themeToggle = document.getElementById('themeToggle');
         const themeIcon = document.getElementById('themeIcon');
+        const floatingActions = document.getElementById('floatingActions');
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
@@ -3616,6 +3830,21 @@
                 filterBooks(searchTerm);
             });
 
+            // Book filter buttons
+            document.querySelectorAll('.library-filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Remove active class from all buttons
+                    document.querySelectorAll('.library-filter-btn').forEach(b => b.classList.remove('active'));
+                    
+                    // Add active class to clicked button
+                    btn.classList.add('active');
+                    
+                    // Filter books
+                    const filter = btn.getAttribute('data-filter');
+                    filterBooksByCategory(filter);
+                });
+            });
+
             // Add book form submission
             document.getElementById('addBookForm').addEventListener('submit', (e) => {
                 e.preventDefault();
@@ -3629,6 +3858,15 @@
                     selectBus(busId);
                 }
             });
+
+            // View all announcements button
+            document.getElementById('viewAllAnnouncementsBtn').addEventListener('click', () => {
+                // Navigate to announcements page
+                const announcementsLink = document.querySelector('.sidebar-menu a[data-page="announcements"]');
+                if (announcementsLink) {
+                    announcementsLink.click();
+                }
+            });
         }
 
         // Validate Login
@@ -3636,8 +3874,7 @@
             // Define valid credentials
             const validCredentials = {
                 admin: { email: 'admin@123', password: 'admin' },
-                teacher: { email: 'teacher1@123', password: 'teacher1' },
-                library: { email: 'library@123', password: 'library' },
+                teacher: { email: 'teacher@123', password: 'teacher' },
                 student: { email: 'student@123', password: 'student' },
                 driver: { email: 'driver@123', password: 'driver' }
             };
@@ -3670,6 +3907,16 @@
             // Generate sidebar menu based on role
             generateSidebarMenu(role);
 
+            // Show/hide floating action buttons based on role
+            if (role === 'admin') {
+                floatingActions.style.display = 'flex';
+            } else {
+                floatingActions.style.display = 'none';
+            }
+
+            // Show/hide admin-only buttons
+            updateAdminOnlyButtons(role);
+
             // Show dashboard
             loginPage.style.display = 'none';
             dashboardPage.style.display = 'block';
@@ -3680,6 +3927,36 @@
             // Show specific content based on role
             if (role === 'driver') {
                 showDriverContent();
+            }
+        }
+
+        // Update Admin Only Buttons
+        function updateAdminOnlyButtons(role) {
+            const addStudentBtn = document.getElementById('addStudentBtn');
+            const addTeacherBtn = document.getElementById('addTeacherBtn');
+            const addClassBtn = document.getElementById('addClassBtn');
+            const addBookBtn = document.getElementById('addBookBtn');
+            const addBookTabBtn = document.getElementById('addBookTabBtn');
+
+            if (role === 'admin') {
+                if (addStudentBtn) addStudentBtn.style.display = 'block';
+                if (addTeacherBtn) addTeacherBtn.style.display = 'block';
+                if (addClassBtn) addClassBtn.style.display = 'block';
+                if (addBookBtn) addBookBtn.style.display = 'block';
+                if (addBookTabBtn) addBookTabBtn.style.display = 'block';
+            } else if (role === 'teacher') {
+                // Teachers can add students to their class only
+                if (addStudentBtn) addStudentBtn.style.display = 'block';
+                if (addTeacherBtn) addTeacherBtn.style.display = 'none';
+                if (addClassBtn) addClassBtn.style.display = 'none';
+                if (addBookBtn) addBookBtn.style.display = 'block';
+                if (addBookTabBtn) addBookTabBtn.style.display = 'block';
+            } else {
+                if (addStudentBtn) addStudentBtn.style.display = 'none';
+                if (addTeacherBtn) addTeacherBtn.style.display = 'none';
+                if (addClassBtn) addClassBtn.style.display = 'none';
+                if (addBookBtn) addBookBtn.style.display = 'none';
+                if (addBookTabBtn) addBookTabBtn.style.display = 'none';
             }
         }
 
@@ -3712,13 +3989,6 @@
                     { icon: 'bi-calendar-week', text: 'Timetable', page: 'timetable' },
                     { icon: 'bi-clipboard-check', text: 'Marks', page: 'marks' },
                     { icon: 'bi-file-earmark-bar-graph', text: 'Reports', page: 'reports' },
-                    { icon: 'bi-book', text: 'Library', page: 'library' },
-                    { icon: 'bi-megaphone', text: 'Announcements', page: 'announcements' },
-                    { icon: 'bi-chat-dots', text: 'Messages', page: 'messages' }
-                ];
-            } else if (role === 'library') {
-                menuItems = [
-                    { icon: 'bi-speedometer2', text: 'Dashboard', page: 'dashboard' },
                     { icon: 'bi-book', text: 'Library', page: 'library' },
                     { icon: 'bi-megaphone', text: 'Announcements', page: 'announcements' },
                     { icon: 'bi-chat-dots', text: 'Messages', page: 'messages' }
@@ -3800,6 +4070,8 @@
                             loadLibraryContent();
                         } else if (page === 'messages') {
                             loadMessagesContent();
+                        } else if (page === 'announcements') {
+                            loadAnnouncementsContent();
                         }
                     } else {
                         document.getElementById('dashboardContent').style.display = 'block';
@@ -3840,7 +4112,7 @@
             ];
             
             statsGrid.innerHTML = stats.map(stat => `
-                <div class="stat-card">
+                <div class="stat-card animate__animated animate__fadeInUp">
                     <div class="stat-icon ${stat.color}">
                         <i class="bi ${stat.icon}"></i>
                     </div>
@@ -3881,8 +4153,8 @@
         function generateAnnouncements() {
             const announcementsList = document.getElementById('announcementsList');
             
-            announcementsList.innerHTML = announcements.map(announcement => `
-                <div class="announcement-card">
+            announcementsList.innerHTML = announcements.slice(0, 2).map(announcement => `
+                <div class="announcement-card animate__animated animate__fadeIn">
                     <div class="announcement-title">${announcement.title}</div>
                     <div class="announcement-content">${announcement.content}</div>
                     <div class="announcement-date">${formatDate(announcement.date)}</div>
@@ -3922,12 +4194,6 @@
                     { icon: 'bi-megaphone', title: 'Announcements', description: 'View announcements' },
                     { icon: 'bi-chat-dots', title: 'Messages', description: 'Communicate with parents' }
                 ];
-            } else if (currentUserRole === 'library') {
-                features = [
-                    { icon: 'bi-book', title: 'Library', description: 'Manage library books and circulation' },
-                    { icon: 'bi-megaphone', title: 'Announcements', description: 'View announcements' },
-                    { icon: 'bi-chat-dots', title: 'Messages', description: 'Communicate with staff and parents' }
-                ];
             } else if (currentUserRole === 'student') {
                 features = [
                     { icon: 'bi-calendar-check', title: 'Attendance', description: 'View attendance records' },
@@ -3941,8 +4207,8 @@
                 ];
             }
             
-            featuresGrid.innerHTML = features.map(feature => `
-                <div class="feature-card" onclick="handleFeatureClick('${feature.title}')">
+            featuresGrid.innerHTML = features.map((feature, index) => `
+                <div class="feature-card animate__animated animate__fadeInUp" style="animation-delay: ${index * 0.1}s" onclick="handleFeatureClick('${feature.title}')">
                     <div class="feature-icon" style="background: rgba(255, 107, 53, 0.1); color: var(--amrita-orange);">
                         <i class="bi ${feature.icon}"></i>
                     </div>
@@ -4333,7 +4599,7 @@
         // Load Library Content
         function loadLibraryContent() {
             // Check if user has permission to modify library
-            const canModifyLibrary = currentUserRole === 'admin' || currentUserRole === 'library';
+            const canModifyLibrary = currentUserRole === 'admin' || currentUserRole === 'teacher';
             
             // Update library stats
             document.getElementById('totalBooks').textContent = books.length;
@@ -4374,7 +4640,22 @@
             const allBooksGrid = document.getElementById('allBooksGrid');
             
             allBooksGrid.innerHTML = books.map(book => `
-                <div class="book-card" onclick="viewBook('${book.id}')">
+                <div class="book-card animate__animated animate__fadeInUp" onclick="viewBook('${book.id}')">
+                    <div class="book-actions">
+                        ${book.available > 0 ? 
+                            `<button class="book-action-btn issue" onclick="event.stopPropagation(); issueBook('${book.id}')" title="Issue Book">
+                                <i class="bi bi-book"></i>
+                            </button>` : 
+                            `<button class="book-action-btn return" onclick="event.stopPropagation(); returnBook('${book.id}')" title="Return Book">
+                                <i class="bi bi-arrow-return-left"></i>
+                            </button>`
+                        }
+                        ${currentUserRole === 'admin' || currentUserRole === 'teacher' ? 
+                            `<button class="book-action-btn edit" onclick="event.stopPropagation(); editBook('${book.id}')" title="Edit Book">
+                                <i class="bi bi-pencil"></i>
+                            </button>` : ''
+                        }
+                    </div>
                     <div class="book-cover">
                         <i class="bi bi-book"></i>
                     </div>
@@ -4412,7 +4693,7 @@
                             <button class="action-btn view" onclick="viewIssuedBook('${book.bookId}')">
                                 <i class="bi bi-eye"></i>
                             </button>
-                            <button class="action-btn edit" onclick="returnBook('${book.bookId}')" ${currentUserRole !== 'admin' && currentUserRole !== 'library' ? 'disabled' : ''}>
+                            <button class="action-btn edit" onclick="returnBook('${book.bookId}')" ${currentUserRole !== 'admin' && currentUserRole !== 'teacher' ? 'disabled' : ''}>
                                 <i class="bi bi-arrow-return-left"></i>
                             </button>
                         </div>
@@ -4444,7 +4725,7 @@
                             <button class="action-btn view" onclick="viewOverdueBook('${book.bookId}')">
                                 <i class="bi bi-eye"></i>
                             </button>
-                            <button class="action-btn edit" onclick="returnBook('${book.bookId}')" ${currentUserRole !== 'admin' && currentUserRole !== 'library' ? 'disabled' : ''}>
+                            <button class="action-btn edit" onclick="returnBook('${book.bookId}')" ${currentUserRole !== 'admin' && currentUserRole !== 'teacher' ? 'disabled' : ''}>
                                 <i class="bi bi-arrow-return-left"></i>
                             </button>
                         </div>
@@ -4467,7 +4748,22 @@
                 allBooksGrid.innerHTML = '<div class="text-center p-4">No books found matching your search.</div>';
             } else {
                 allBooksGrid.innerHTML = filteredBooks.map(book => `
-                    <div class="book-card" onclick="viewBook('${book.id}')">
+                    <div class="book-card animate__animated animate__fadeInUp" onclick="viewBook('${book.id}')">
+                        <div class="book-actions">
+                            ${book.available > 0 ? 
+                                `<button class="book-action-btn issue" onclick="event.stopPropagation(); issueBook('${book.id}')" title="Issue Book">
+                                    <i class="bi bi-book"></i>
+                                </button>` : 
+                                `<button class="book-action-btn return" onclick="event.stopPropagation(); returnBook('${book.id}')" title="Return Book">
+                                    <i class="bi bi-arrow-return-left"></i>
+                                </button>`
+                            }
+                            ${currentUserRole === 'admin' || currentUserRole === 'teacher' ? 
+                                `<button class="book-action-btn edit" onclick="event.stopPropagation(); editBook('${book.id}')" title="Edit Book">
+                                    <i class="bi bi-pencil"></i>
+                                </button>` : ''
+                            }
+                        </div>
                         <div class="book-cover">
                             <i class="bi bi-book"></i>
                         </div>
@@ -4483,10 +4779,145 @@
             }
         }
 
+        // Filter Books By Category
+        function filterBooksByCategory(category) {
+            let filteredBooks = books;
+            
+            if (category !== 'all') {
+                filteredBooks = books.filter(book => book.category === category);
+            }
+            
+            const allBooksGrid = document.getElementById('allBooksGrid');
+            
+            if (filteredBooks.length === 0) {
+                allBooksGrid.innerHTML = '<div class="text-center p-4">No books found in this category.</div>';
+            } else {
+                allBooksGrid.innerHTML = filteredBooks.map(book => `
+                    <div class="book-card animate__animated animate__fadeInUp" onclick="viewBook('${book.id}')">
+                        <div class="book-actions">
+                            ${book.available > 0 ? 
+                                `<button class="book-action-btn issue" onclick="event.stopPropagation(); issueBook('${book.id}')" title="Issue Book">
+                                    <i class="bi bi-book"></i>
+                                </button>` : 
+                                `<button class="book-action-btn return" onclick="event.stopPropagation(); returnBook('${book.id}')" title="Return Book">
+                                    <i class="bi bi-arrow-return-left"></i>
+                                </button>`
+                            }
+                            ${currentUserRole === 'admin' || currentUserRole === 'teacher' ? 
+                                `<button class="book-action-btn edit" onclick="event.stopPropagation(); editBook('${book.id}')" title="Edit Book">
+                                    <i class="bi bi-pencil"></i>
+                                </button>` : ''
+                            }
+                        </div>
+                        <div class="book-cover">
+                            <i class="bi bi-book"></i>
+                        </div>
+                        <div class="book-details">
+                            <div class="book-title">${book.title}</div>
+                            <div class="book-author">${book.author}</div>
+                            <div class="book-status ${book.available > 0 ? 'available' : 'issued'}">
+                                ${book.available > 0 ? `Available (${book.available})` : 'Issued'}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Issue Book
+        function issueBook(bookId) {
+            // Check if user has permission
+            if (currentUserRole !== 'admin' && currentUserRole !== 'teacher') {
+                showToast('Permission Denied', 'You do not have permission to issue books', 'error');
+                return;
+            }
+            
+            const book = books.find(b => b.id === bookId);
+            if (book && book.available > 0) {
+                book.available--;
+                loadAllBooks();
+                showToast('Success', 'Book issued successfully', 'success');
+            } else {
+                showToast('Error', 'Book is not available', 'error');
+            }
+        }
+
+        // Edit Book
+        function editBook(bookId) {
+            // Check if user has permission
+            if (currentUserRole !== 'admin' && currentUserRole !== 'teacher') {
+                showToast('Permission Denied', 'You do not have permission to edit books', 'error');
+                return;
+            }
+            
+            const book = books.find(b => b.id === bookId);
+            if (book) {
+                // Pre-fill the form with book details
+                document.getElementById('bookTitle').value = book.title;
+                document.getElementById('bookAuthor').value = book.author;
+                document.getElementById('bookISBN').value = book.isbn;
+                document.getElementById('bookCategory').value = book.category;
+                document.getElementById('bookPublisher').value = book.publisher;
+                document.getElementById('bookYear').value = book.year;
+                document.getElementById('bookQuantity').value = book.quantity;
+                document.getElementById('bookLocation').value = book.location;
+                document.getElementById('bookDescription').value = book.description;
+                
+                // Show the modal
+                showAddBookModal();
+                
+                // Change the modal title and button text
+                document.querySelector('#addBookModal .modal-title').textContent = 'Edit Book';
+                document.querySelector('#addBookModal .modal-footer .btn-primary').textContent = 'Update Book';
+                
+                // Change the form submission function
+                document.getElementById('addBookForm').onsubmit = function(e) {
+                    e.preventDefault();
+                    updateBook(bookId);
+                };
+            }
+        }
+
+        // Update Book
+        function updateBook(bookId) {
+            const book = books.find(b => b.id === bookId);
+            if (book) {
+                // Update book details
+                book.title = document.getElementById('bookTitle').value;
+                book.author = document.getElementById('bookAuthor').value;
+                book.isbn = document.getElementById('bookISBN').value;
+                book.category = document.getElementById('bookCategory').value;
+                book.publisher = document.getElementById('bookPublisher').value;
+                book.year = document.getElementById('bookYear').value;
+                book.quantity = parseInt(document.getElementById('bookQuantity').value);
+                book.location = document.getElementById('bookLocation').value;
+                book.description = document.getElementById('bookDescription').value;
+                
+                // Refresh books grid
+                loadAllBooks();
+                
+                // Close modal
+                closeModal('addBookModal');
+                
+                // Reset modal title and button
+                document.querySelector('#addBookModal .modal-title').textContent = 'Add New Book';
+                document.querySelector('#addBookModal .modal-footer .btn-primary').textContent = 'Add Book';
+                
+                // Reset form submission function
+                document.getElementById('addBookForm').onsubmit = function(e) {
+                    e.preventDefault();
+                    addBook();
+                };
+                
+                // Show success message
+                showToast('Success', 'Book updated successfully', 'success');
+            }
+        }
+
         // Add Book
         function addBook() {
             // Check if user has permission
-            if (currentUserRole !== 'admin' && currentUserRole !== 'library') {
+            if (currentUserRole !== 'admin' && currentUserRole !== 'teacher') {
                 showToast('Permission Denied', 'You do not have permission to add books', 'error');
                 return;
             }
@@ -4562,7 +4993,7 @@
         // Return Book
         function returnBook(bookId) {
             // Check if user has permission
-            if (currentUserRole !== 'admin' && currentUserRole !== 'library') {
+            if (currentUserRole !== 'admin' && currentUserRole !== 'teacher') {
                 showToast('Permission Denied', 'You do not have permission to return books', 'error');
                 return;
             }
@@ -4601,8 +5032,27 @@
             const lkg10TableBody = document.getElementById('lkg10TableBody');
             const class11_12TableBody = document.getElementById('class11_12TableBody');
             
+            // Filter students based on user role
+            let filteredStudents = students;
+            
+            if (currentUserRole === 'teacher') {
+                // Get teacher's assigned class
+                const teacher = teachers.find(t => t.email === currentUser.email);
+                if (teacher && teacher.classTeacher) {
+                    const [teacherClass, teacherSection] = teacher.classTeacher.split('-');
+                    
+                    // If teacher is a class head, show all students in the class
+                    if (teacher.isClassHead) {
+                        filteredStudents = students.filter(s => s.class === teacherClass);
+                    } else {
+                        // Otherwise, show only students in the teacher's section
+                        filteredStudents = students.filter(s => s.class === teacherClass && s.section === teacherSection);
+                    }
+                }
+            }
+            
             // All students
-            studentsTableBody.innerHTML = students.map(student => `
+            studentsTableBody.innerHTML = filteredStudents.map(student => `
                 <tr>
                     <td>${student.id}</td>
                     <td>${student.name}</td>
@@ -4615,19 +5065,23 @@
                             <button class="action-btn view" onclick="viewStudent('${student.id}')">
                                 <i class="bi bi-eye"></i>
                             </button>
-                            <button class="action-btn edit" onclick="editStudent('${student.id}')">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="action-btn delete" onclick="deleteStudent('${student.id}')">
-                                <i class="bi bi-trash"></i>
-                            </button>
+                            ${currentUserRole === 'admin' || (currentUserRole === 'teacher' && canEditStudent(student)) ? 
+                                `<button class="action-btn edit" onclick="editStudent('${student.id}')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>` : ''
+                            }
+                            ${currentUserRole === 'admin' ? 
+                                `<button class="action-btn delete" onclick="deleteStudent('${student.id}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>` : ''
+                            }
                         </div>
                     </td>
                 </tr>
             `).join('');
             
             // LKG-10 students
-            const lkg10Students = students.filter(s => parseInt(s.class) <= 10);
+            const lkg10Students = filteredStudents.filter(s => parseInt(s.class) <= 10);
             lkg10TableBody.innerHTML = lkg10Students.map(student => `
                 <tr>
                     <td>${student.id}</td>
@@ -4641,19 +5095,23 @@
                             <button class="action-btn view" onclick="viewStudent('${student.id}')">
                                 <i class="bi bi-eye"></i>
                             </button>
-                            <button class="action-btn edit" onclick="editStudent('${student.id}')">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="action-btn delete" onclick="deleteStudent('${student.id}')">
-                                <i class="bi bi-trash"></i>
-                            </button>
+                            ${currentUserRole === 'admin' || (currentUserRole === 'teacher' && canEditStudent(student)) ? 
+                                `<button class="action-btn edit" onclick="editStudent('${student.id}')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>` : ''
+                            }
+                            ${currentUserRole === 'admin' ? 
+                                `<button class="action-btn delete" onclick="deleteStudent('${student.id}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>` : ''
+                            }
                         </div>
                     </td>
                 </tr>
             `).join('');
             
             // Class 11-12 students
-            const class11_12Students = students.filter(s => parseInt(s.class) >= 11);
+            const class11_12Students = filteredStudents.filter(s => parseInt(s.class) >= 11);
             class11_12TableBody.innerHTML = class11_12Students.map(student => `
                 <tr>
                     <td>${student.id}</td>
@@ -4668,16 +5126,38 @@
                             <button class="action-btn view" onclick="viewStudent('${student.id}')">
                                 <i class="bi bi-eye"></i>
                             </button>
-                            <button class="action-btn edit" onclick="editStudent('${student.id}')">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="action-btn delete" onclick="deleteStudent('${student.id}')">
-                                <i class="bi bi-trash"></i>
-                            </button>
+                            ${currentUserRole === 'admin' || (currentUserRole === 'teacher' && canEditStudent(student)) ? 
+                                `<button class="action-btn edit" onclick="editStudent('${student.id}')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>` : ''
+                            }
+                            ${currentUserRole === 'admin' ? 
+                                `<button class="action-btn delete" onclick="deleteStudent('${student.id}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>` : ''
+                            }
                         </div>
                     </td>
                 </tr>
             `).join('');
+        }
+
+        // Check if teacher can edit student
+        function canEditStudent(student) {
+            if (currentUserRole !== 'teacher') return false;
+            
+            const teacher = teachers.find(t => t.email === currentUser.email);
+            if (!teacher || !teacher.classTeacher) return false;
+            
+            const [teacherClass, teacherSection] = teacher.classTeacher.split('-');
+            
+            // If teacher is a class head, can edit all students in the class
+            if (teacher.isClassHead) {
+                return student.class === teacherClass;
+            } else {
+                // Otherwise, can only edit students in the teacher's section
+                return student.class === teacherClass && student.section === teacherSection;
+            }
         }
 
         // Load Teachers Content
@@ -4697,12 +5177,14 @@
                             <button class="action-btn view" onclick="viewTeacher('${teacher.id}')">
                                 <i class="bi bi-eye"></i>
                             </button>
-                            <button class="action-btn edit" onclick="editTeacher('${teacher.id}')">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="action-btn delete" onclick="deleteTeacher('${teacher.id}')">
-                                <i class="bi bi-trash"></i>
-                            </button>
+                            ${currentUserRole === 'admin' ? 
+                                `<button class="action-btn edit" onclick="editTeacher('${teacher.id}')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="action-btn delete" onclick="deleteTeacher('${teacher.id}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>` : ''
+                            }
                         </div>
                     </td>
                 </tr>
@@ -4725,12 +5207,14 @@
                             <button class="action-btn view" onclick="viewClass('${cls.class}-${cls.section}')">
                                 <i class="bi bi-eye"></i>
                             </button>
-                            <button class="action-btn edit" onclick="editClass('${cls.class}-${cls.section}')">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="action-btn delete" onclick="deleteClass('${cls.class}-${cls.section}')">
-                                <i class="bi bi-trash"></i>
-                            </button>
+                            ${currentUserRole === 'admin' ? 
+                                `<button class="action-btn edit" onclick="editClass('${cls.class}-${cls.section}')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="action-btn delete" onclick="deleteClass('${cls.class}-${cls.section}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>` : ''
+                            }
                         </div>
                     </td>
                 </tr>
@@ -4790,23 +5274,67 @@
             // Messages content is already in HTML
         }
 
+        // Load Announcements Content
+        function loadAnnouncementsContent() {
+            // This would load the full announcements page
+            // For now, we'll just show a message
+            showToast('Announcements', 'Full announcements page would be loaded here', 'success');
+        }
+
         // Show Add Student Modal
         function showAddStudentModal() {
+            // Check if user has permission
+            if (currentUserRole !== 'admin' && currentUserRole !== 'teacher') {
+                showToast('Permission Denied', 'You do not have permission to add students', 'error');
+                return;
+            }
+            
+            // If teacher, pre-select their class
+            if (currentUserRole === 'teacher') {
+                const teacher = teachers.find(t => t.email === currentUser.email);
+                if (teacher && teacher.classTeacher) {
+                    const [teacherClass, teacherSection] = teacher.classTeacher.split('-');
+                    document.getElementById('studentClass').value = teacherClass;
+                    document.getElementById('studentSection').value = teacherSection;
+                    
+                    // Trigger change event to update form
+                    document.getElementById('studentClass').dispatchEvent(new Event('change'));
+                }
+            }
+            
             document.getElementById('addStudentModal').classList.add('active');
         }
 
         // Show Add Teacher Modal
         function showAddTeacherModal() {
+            // Check if user has permission
+            if (currentUserRole !== 'admin') {
+                showToast('Permission Denied', 'You do not have permission to add teachers', 'error');
+                return;
+            }
+            
             document.getElementById('addTeacherModal').classList.add('active');
         }
 
         // Show Add Class Modal
         function showAddClassModal() {
+            // Check if user has permission
+            if (currentUserRole !== 'admin') {
+                showToast('Permission Denied', 'You do not have permission to add classes', 'error');
+                return;
+            }
+            
             document.getElementById('addClassModal').classList.add('active');
         }
 
         // Show Add Announcement Modal
         function showAddAnnouncementModal() {
+            // Check if user has permission
+            if (currentUserRole !== 'admin') {
+                showToast('Permission Denied', 'You do not have permission to add announcements', 'error');
+                return;
+            }
+            
             document.getElementById('addAnnouncementModal').classList.add('active');
         }
 
@@ -4817,6 +5345,12 @@
 
         // Show Add Book Modal
         function showAddBookModal() {
+            // Check if user has permission
+            if (currentUserRole !== 'admin' && currentUserRole !== 'teacher') {
+                showToast('Permission Denied', 'You do not have permission to add books', 'error');
+                return;
+            }
+            
             document.getElementById('addBookModal').classList.add('active');
         }
 
@@ -4827,6 +5361,12 @@
 
         // Add Student
         function addStudent() {
+            // Check if user has permission
+            if (currentUserRole !== 'admin' && currentUserRole !== 'teacher') {
+                showToast('Permission Denied', 'You do not have permission to add students', 'error');
+                return;
+            }
+            
             const studentName = document.getElementById('studentName').value;
             const studentClass = document.getElementById('studentClass').value;
             const studentSection = document.getElementById('studentSection').value;
@@ -4854,6 +5394,26 @@
             if (!studentName || !studentClass || !studentSection || !parentName || !parentPhone || !parentEmail) {
                 showToast('Error', 'Please fill all required fields', 'error');
                 return;
+            }
+            
+            // If teacher, check if they can add to this class
+            if (currentUserRole === 'teacher') {
+                const teacher = teachers.find(t => t.email === currentUser.email);
+                if (teacher && teacher.classTeacher) {
+                    const [teacherClass, teacherSection] = teacher.classTeacher.split('-');
+                    
+                    // If teacher is a class head, can add to any section in the class
+                    if (!teacher.isClassHead && (studentClass !== teacherClass || studentSection !== teacherSection)) {
+                        showToast('Permission Denied', 'You can only add students to your assigned class section', 'error');
+                        return;
+                    }
+                    
+                    // If teacher is not a class head, can only add to their specific section
+                    if (!teacher.isClassHead && (studentClass !== teacherClass || studentSection !== teacherSection)) {
+                        showToast('Permission Denied', 'You can only add students to your assigned class section', 'error');
+                        return;
+                    }
+                }
             }
             
             // Generate student ID
@@ -4891,6 +5451,12 @@
 
         // Add Teacher
         function addTeacher() {
+            // Check if user has permission
+            if (currentUserRole !== 'admin') {
+                showToast('Permission Denied', 'You do not have permission to add teachers', 'error');
+                return;
+            }
+            
             const teacherName = document.getElementById('teacherName').value;
             const teacherSubject = document.getElementById('teacherSubject').value;
             const classTeacher = document.getElementById('classTeacher').value;
@@ -4915,7 +5481,8 @@
                 classTeacher: classTeacher,
                 phone: teacherPhone,
                 email: teacherEmail,
-                address: teacherAddress
+                address: teacherAddress,
+                isClassHead: false
             };
             
             // Add to teachers array
@@ -4933,6 +5500,12 @@
 
         // Add Class
         function addClass() {
+            // Check if user has permission
+            if (currentUserRole !== 'admin') {
+                showToast('Permission Denied', 'You do not have permission to add classes', 'error');
+                return;
+            }
+            
             const newClass = document.getElementById('newClass').value;
             const newSection = document.getElementById('newSection').value;
             const classHead = document.getElementById('classHead').value;
@@ -4970,6 +5543,12 @@
 
         // Add Announcement
         function addAnnouncement() {
+            // Check if user has permission
+            if (currentUserRole !== 'admin') {
+                showToast('Permission Denied', 'You do not have permission to add announcements', 'error');
+                return;
+            }
+            
             const title = document.getElementById('announcementTitle').value;
             const content = document.getElementById('announcementContent').value;
             const target = document.getElementById('announcementTarget').value;
@@ -5027,8 +5606,24 @@
                 return;
             }
             
+            // Create message object
+            const newMessage = {
+                id: messages.length + 1,
+                from: currentUser.name,
+                to: to,
+                subject: subject,
+                content: content,
+                date: new Date(),
+                sendSMS: sendSMS,
+                sendEmail: sendEmail,
+                sendWhatsApp: sendWhatsApp
+            };
+            
+            // Add to messages array
+            messages.push(newMessage);
+            
             // In a real application, this would send the message
-            console.log('Sending message:', { to, subject, content, sendSMS, sendEmail, sendWhatsApp });
+            console.log('Sending message:', newMessage);
             
             // Close modal
             closeModal('composeMessageModal');

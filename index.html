@@ -7,6 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
             --primary-color: #4a6cf7;
@@ -23,17 +24,104 @@
             --amrita-blue: #004e89;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        /* Light Theme (Default) */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f1f5f9;
             color: var(--dark-color);
             overflow-x: hidden;
+            transition: all 0.3s ease;
+        }
+
+        /* Dark Theme */
+        body.dark-theme {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+
+        body.dark-theme .login-container {
+            background: linear-gradient(135deg, #1e293b, #334155);
+        }
+
+        body.dark-theme .login-card {
+            background: rgba(30, 41, 59, 0.95);
+            color: #e2e8f0;
+        }
+
+        body.dark-theme .form-control {
+            background-color: #1e293b;
+            border-color: #475569;
+            color: #e2e8f0;
+        }
+
+        body.dark-theme .sidebar {
+            background: linear-gradient(180deg, #1e293b, #334155);
+        }
+
+        body.dark-theme .header {
+            background: #1e293b;
+            color: #e2e8f0;
+        }
+
+        body.dark-theme .content-card,
+        body.dark-theme .stat-card,
+        body.dark-theme .feature-card,
+        body.dark-theme .contact-card,
+        body.dark-theme .modal-content {
+            background: #1e293b;
+            color: #e2e8f0;
+        }
+
+        body.dark-theme .data-table th,
+        body.dark-theme .data-table td {
+            border-color: #334155;
+        }
+
+        body.dark-theme .data-table tr:hover {
+            background: #334155;
+        }
+
+        body.dark-theme .form-control-lg {
+            background-color: #1e293b;
+            border-color: #475569;
+            color: #e2e8f0;
+        }
+
+        body.dark-theme .tabs-container {
+            background: #1e293b;
+        }
+
+        body.dark-theme .message-content {
+            background: #334155;
+        }
+
+        body.dark-theme .message.sent .message-content {
+            background: var(--amrita-orange);
+        }
+
+        /* Theme Toggle Button */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1001;
+            background: var(--amrita-orange);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
         }
 
         /* Login Page Styles */
@@ -815,120 +903,289 @@
             color: var(--danger-color);
         }
 
-        /* Calendar */
-        .calendar-widget {
+        /* Enhanced Bus Tracking with Google Maps */
+        .bus-tracking-container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            height: 500px;
+        }
+
+        .bus-map-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+
+        #busMap, #driverBusMap {
+            height: 100%;
+            width: 100%;
+            border-radius: 15px;
+        }
+
+        .bus-control-panel {
             background: white;
             border-radius: 15px;
             padding: 20px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            overflow-y: auto;
         }
 
-        .calendar-header {
+        .bus-info-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--amrita-orange);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .bus-selector {
+            margin-bottom: 20px;
+        }
+
+        .bus-selector select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .bus-info-item {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f1f5f9;
         }
 
-        .calendar-nav {
+        .bus-info-label {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .bus-info-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .bus-status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .bus-status-indicator.active {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .bus-status-indicator.inactive {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        .bus-students-list {
+            margin-top: 15px;
+        }
+
+        .bus-students-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--dark-color);
+        }
+
+        .bus-student-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            margin-bottom: 5px;
+            background: #f8fafc;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .bus-student-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--amrita-orange);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .bus-actions {
+            margin-top: 20px;
             display: flex;
             gap: 10px;
         }
 
-        .calendar-nav button {
-            background: none;
+        .bus-action-btn {
+            flex: 1;
+            padding: 10px;
             border: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .calendar-nav button:hover {
-            background: #f1f5f9;
-        }
-
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
             gap: 5px;
         }
 
-        .calendar-day-header {
-            text-align: center;
-            font-weight: 600;
-            font-size: 12px;
-            color: #64748b;
-            padding: 10px 0;
+        .bus-action-btn.primary {
+            background: var(--amrita-orange);
+            color: white;
         }
 
-        .calendar-day {
-            aspect-ratio: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        .bus-action-btn.secondary {
+            background: #f1f5f9;
+            color: var(--dark-color);
+        }
+
+        .bus-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .bus-location-history {
+            margin-top: 20px;
+        }
+
+        .location-history-title {
             font-size: 14px;
-            position: relative;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--dark-color);
         }
 
-        .calendar-day:hover {
-            background: #f1f5f9;
-            transform: scale(1.1);
+        .location-history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            margin-bottom: 5px;
+            background: #f8fafc;
+            border-radius: 8px;
+            font-size: 12px;
         }
 
-        .calendar-day.today {
-            background: var(--amrita-orange);
+        .location-time {
+            color: #64748b;
+        }
+
+        .location-name {
+            font-weight: 500;
+        }
+
+        /* Library Management */
+        .library-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .library-stat-card {
+            background: linear-gradient(135deg, var(--amrita-orange), var(--amrita-blue));
             color: white;
-        }
-
-        .calendar-day.has-event {
-            position: relative;
-        }
-
-        .calendar-day.has-event::after {
-            content: '';
-            position: absolute;
-            bottom: 2px;
-            width: 4px;
-            height: 4px;
-            border-radius: 50%;
-            background: var(--accent-color);
-        }
-
-        /* Bus Tracking */
-        .bus-map {
-            height: 400px;
-            background: #f1f5f9;
             border-radius: 15px;
-            position: relative;
-            overflow: hidden;
+            padding: 20px;
+            text-align: center;
         }
 
-        .bus-marker {
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            background: var(--amrita-orange);
-            border-radius: 50%;
+        .library-stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .library-stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .book-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .book-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .book-cover {
+            height: 200px;
+            background: linear-gradient(135deg, var(--amrita-orange), var(--amrita-blue));
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-weight: 600;
-            animation: pulse 2s infinite;
+            font-size: 48px;
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
+        .book-details {
+            padding: 15px;
+        }
+
+        .book-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .book-author {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 10px;
+        }
+
+        .book-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .book-status.available {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .book-status.issued {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
         }
 
         /* Announcement */
@@ -955,10 +1212,324 @@
             opacity: 0.8;
         }
 
+        /* Feature Cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--amrita-orange), var(--amrita-blue));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+
+        .feature-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .feature-description {
+            color: #64748b;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Timetable */
+        .timetable-container {
+            overflow-x: auto;
+        }
+
+        .timetable {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .timetable th {
+            background: var(--amrita-orange);
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .timetable td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #f1f5f9;
+        }
+
+        .timetable tr:hover {
+            background: #f8fafc;
+        }
+
+        .subject-cell {
+            background: rgba(255, 107, 53, 0.1);
+            border-radius: 8px;
+            padding: 8px;
+            font-weight: 500;
+        }
+
+        /* Mark Entry */
+        .mark-entry-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .mark-entry-table th {
+            background: var(--amrita-blue);
+            color: white;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .mark-entry-table td {
+            padding: 10px;
+            border: 1px solid #f1f5f9;
+        }
+
+        .mark-input {
+            width: 80px;
+            padding: 5px;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        /* Report Card */
+        .report-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .report-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .student-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .student-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--amrita-orange), var(--amrita-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 20px;
+            margin-right: 15px;
+        }
+
+        .student-details h4 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .student-details p {
+            margin: 0;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .grade-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .grade-table th {
+            background: #f1f5f9;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .grade-table td {
+            padding: 10px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .grade {
+            font-weight: 600;
+            color: var(--amrita-orange);
+        }
+
+        .remarks {
+            margin-top: 20px;
+        }
+
+        .remarks h5 {
+            margin-bottom: 10px;
+        }
+
+        .remarks-text {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 10px;
+            font-style: italic;
+        }
+
+        /* Bus Selection */
+        .bus-selection {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .bus-option {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .bus-option.selected {
+            border-color: var(--amrita-orange);
+            background: rgba(255, 107, 53, 0.1);
+        }
+
+        .bus-option:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .bus-icon {
+            font-size: 30px;
+            color: var(--amrita-orange);
+            margin-bottom: 10px;
+        }
+
+        .bus-label {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .bus-description {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        /* Error Handling */
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .success-message {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        .slide-up {
+            animation: slideUp 0.5s ease;
+        }
+
+        .scale-in {
+            animation: scaleIn 0.3s ease;
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
         /* Responsive Design */
         @media (max-width: 1200px) {
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .bus-tracking-container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            
+            .bus-map-container {
+                height: 400px;
             }
         }
 
@@ -1278,424 +1849,14 @@
             background: #e55a2b;
             transform: scale(1.05);
         }
-
-        /* Contact Cards */
-        .contact-card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .contact-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-
-        .contact-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .contact-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            margin-right: 15px;
-            font-size: 18px;
-        }
-
-        .contact-info {
-            flex: 1;
-        }
-
-        .contact-name {
-            font-weight: 600;
-            font-size: 16px;
-            margin-bottom: 2px;
-        }
-
-        .contact-role {
-            font-size: 12px;
-            color: #64748b;
-        }
-
-        .contact-details {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .contact-detail {
-            display: flex;
-            align-items: center;
-            font-size: 14px;
-            color: #64748b;
-        }
-
-        .contact-detail i {
-            margin-right: 8px;
-            width: 20px;
-        }
-
-        .contact-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .contact-btn {
-            flex: 1;
-            padding: 8px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-        }
-
-        .contact-btn.call {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--success-color);
-        }
-
-        .contact-btn.message {
-            background: rgba(74, 108, 247, 0.1);
-            color: var(--primary-color);
-        }
-
-        .contact-btn.email {
-            background: rgba(245, 158, 11, 0.1);
-            color: var(--warning-color);
-        }
-
-        .contact-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Feature Cards */
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 25px;
-        }
-
-        .feature-card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, var(--amrita-orange), var(--amrita-blue));
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.3s ease;
-        }
-
-        .feature-card:hover::before {
-            transform: scaleX(1);
-        }
-
-        .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-
-        .feature-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            margin-bottom: 15px;
-        }
-
-        .feature-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .feature-description {
-            color: #64748b;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        /* Timetable */
-        .timetable-container {
-            overflow-x: auto;
-        }
-
-        .timetable {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .timetable th {
-            background: var(--amrita-orange);
-            color: white;
-            padding: 10px;
-            text-align: center;
-        }
-
-        .timetable td {
-            padding: 10px;
-            text-align: center;
-            border: 1px solid #f1f5f9;
-        }
-
-        .timetable tr:hover {
-            background: #f8fafc;
-        }
-
-        .subject-cell {
-            background: rgba(255, 107, 53, 0.1);
-            border-radius: 8px;
-            padding: 8px;
-            font-weight: 500;
-        }
-
-        /* Mark Entry */
-        .mark-entry-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .mark-entry-table th {
-            background: var(--amrita-blue);
-            color: white;
-            padding: 10px;
-            text-align: left;
-        }
-
-        .mark-entry-table td {
-            padding: 10px;
-            border: 1px solid #f1f5f9;
-        }
-
-        .mark-input {
-            width: 80px;
-            padding: 5px;
-            border: 1px solid #e2e8f0;
-            border-radius: 5px;
-            text-align: center;
-        }
-
-        /* Report Card */
-        .report-card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            margin-bottom: 20px;
-        }
-
-        .report-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .report-title {
-            font-size: 20px;
-            font-weight: 600;
-        }
-
-        .report-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .student-info {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .student-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--amrita-orange), var(--amrita-blue));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 20px;
-            margin-right: 15px;
-        }
-
-        .student-details h4 {
-            margin: 0;
-            font-size: 18px;
-        }
-
-        .student-details p {
-            margin: 0;
-            color: #64748b;
-            font-size: 14px;
-        }
-
-        .grade-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        .grade-table th {
-            background: #f1f5f9;
-            padding: 10px;
-            text-align: left;
-            font-weight: 600;
-        }
-
-        .grade-table td {
-            padding: 10px;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .grade {
-            font-weight: 600;
-            color: var(--amrita-orange);
-        }
-
-        .remarks {
-            margin-top: 20px;
-        }
-
-        .remarks h5 {
-            margin-bottom: 10px;
-        }
-
-        .remarks-text {
-            background: #f8fafc;
-            padding: 15px;
-            border-radius: 10px;
-            font-style: italic;
-        }
-
-        /* Bus Selection */
-        .bus-selection {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .bus-option {
-            flex: 1;
-            padding: 15px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-
-        .bus-option.selected {
-            border-color: var(--amrita-orange);
-            background: rgba(255, 107, 53, 0.1);
-        }
-
-        .bus-option:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .bus-icon {
-            font-size: 30px;
-            color: var(--amrita-orange);
-            margin-bottom: 10px;
-        }
-
-        .bus-label {
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .bus-description {
-            font-size: 12px;
-            color: #64748b;
-        }
-
-        /* Error Handling */
-        .error-message {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--danger-color);
-            padding: 10px 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .success-message {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--success-color);
-            padding: 10px 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        /* Animations */
-        .fade-in {
-            animation: fadeIn 0.5s ease;
-        }
-
-        .slide-up {
-            animation: slideUp 0.5s ease;
-        }
-
-        .scale-in {
-            animation: scaleIn 0.3s ease;
-        }
-
-        @keyframes scaleIn {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
     </style>
 </head>
 <body>
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" id="themeToggle">
+        <i class="bi bi-moon-fill" id="themeIcon"></i>
+    </button>
+
     <!-- Login Page -->
     <div class="login-container" id="loginPage">
         <div class="login-card">
@@ -1713,6 +1874,10 @@
                 <div class="user-type-btn" data-role="teacher">
                     <i class="bi bi-person-workspace"></i>
                     <div>Teacher</div>
+                </div>
+                <div class="user-type-btn" data-role="library">
+                    <i class="bi bi-book"></i>
+                    <div>Library</div>
                 </div>
                 <div class="user-type-btn" data-role="student">
                     <i class="bi bi-book"></i>
@@ -2264,14 +2429,78 @@
             <div id="busTrackingContent" style="display: none;">
                 <div class="content-card">
                     <div class="card-header">
-                        <h3 class="card-title">Bus Tracking</h3>
-                        <button class="btn btn-primary" onclick="refreshBusLocations()">Refresh</button>
+                        <h3 class="card-title">Bus Tracking System</h3>
+                        <button class="btn btn-primary" onclick="refreshBusLocations()">Refresh Locations</button>
                     </div>
-                    <div class="bus-map" id="busMap">
-                        <!-- Bus map will be dynamically generated -->
+                    <div class="bus-tracking-container">
+                        <div class="bus-map-container">
+                            <div id="busMap"></div>
+                        </div>
+                        <div class="bus-control-panel">
+                            <div class="bus-info-title">
+                                <i class="bi bi-bus-front"></i>
+                                Bus Information
+                            </div>
+                            <div class="bus-selector">
+                                <label class="form-label">Select Bus</label>
+                                <select id="busSelector" class="form-control">
+                                    <option value="">Select a bus to view details</option>
+                                </select>
+                            </div>
+                            <div id="busDetails">
+                                <div class="bus-info-item">
+                                    <span class="bus-info-label">Bus Number:</span>
+                                    <span class="bus-info-value" id="selectedBusNumber">-</span>
+                                </div>
+                                <div class="bus-info-item">
+                                    <span class="bus-info-label">Driver:</span>
+                                    <span class="bus-info-value" id="selectedBusDriver">-</span>
+                                </div>
+                                <div class="bus-info-item">
+                                    <span class="bus-info-label">Route:</span>
+                                    <span class="bus-info-value" id="selectedBusRoute">-</span>
+                                </div>
+                                <div class="bus-info-item">
+                                    <span class="bus-info-label">Status:</span>
+                                    <span class="bus-status-indicator" id="selectedBusStatus">-</span>
+                                </div>
+                                <div class="bus-info-item">
+                                    <span class="bus-info-label">Students:</span>
+                                    <span class="bus-info-value" id="selectedBusStudents">-</span>
+                                </div>
+                                <div class="bus-info-item">
+                                    <span class="bus-info-label">Speed:</span>
+                                    <span class="bus-info-value" id="selectedBusSpeed">-</span>
+                                </div>
+                                <div class="bus-info-item">
+                                    <span class="bus-info-label">Last Update:</span>
+                                    <span class="bus-info-value" id="selectedBusLastUpdate">-</span>
+                                </div>
+                            </div>
+                            <div class="bus-students-list" id="busStudentsList" style="display: none;">
+                                <div class="bus-students-title">Students on Board</div>
+                                <div id="busStudentsListContent">
+                                    <!-- Students list will be dynamically generated -->
+                                </div>
+                            </div>
+                            <div class="bus-location-history" id="busLocationHistory" style="display: none;">
+                                <div class="location-history-title">Recent Locations</div>
+                                <div id="locationHistoryContent">
+                                    <!-- Location history will be dynamically generated -->
+                                </div>
+                            </div>
+                            <div class="bus-actions">
+                                <button class="bus-action-btn primary" onclick="trackSelectedBus()">
+                                    <i class="bi bi-geo-alt"></i> Track
+                                </button>
+                                <button class="bus-action-btn secondary" onclick="messageDriver()">
+                                    <i class="bi bi-chat-dots"></i> Message
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     <div class="mt-3">
-                        <h5>Bus Information</h5>
+                        <h5>All Buses</h5>
                         <div class="table-responsive">
                             <table class="data-table">
                                 <thead>
@@ -2279,8 +2508,8 @@
                                         <th>Bus Number</th>
                                         <th>Driver Name</th>
                                         <th>Route</th>
-                                        <th>Current Location</th>
                                         <th>Status</th>
+                                        <th>Students</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -2288,6 +2517,171 @@
                                     <!-- Bus information will be dynamically generated -->
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Library Content -->
+            <div id="libraryContent" style="display: none;">
+                <div class="content-card">
+                    <div class="card-header">
+                        <h3 class="card-title">Library Management</h3>
+                        <button class="btn btn-primary" id="addBookBtn" onclick="showAddBookModal()">Add Book</button>
+                    </div>
+                    <div class="library-stats">
+                        <div class="library-stat-card">
+                            <div class="library-stat-value" id="totalBooks">1,250</div>
+                            <div class="library-stat-label">Total Books</div>
+                        </div>
+                        <div class="library-stat-card">
+                            <div class="library-stat-value" id="availableBooks">980</div>
+                            <div class="library-stat-label">Available</div>
+                        </div>
+                        <div class="library-stat-card">
+                            <div class="library-stat-value" id="issuedBooks">270</div>
+                            <div class="library-stat-label">Issued</div>
+                        </div>
+                        <div class="library-stat-card">
+                            <div class="library-stat-value" id="overdueBooks">15</div>
+                            <div class="library-stat-label">Overdue</div>
+                        </div>
+                    </div>
+                    <div class="tabs-container">
+                        <div class="tabs-header">
+                            <button class="tab-btn active" data-tab="all-books">All Books</button>
+                            <button class="tab-btn" data-tab="issued-books">Issued Books</button>
+                            <button class="tab-btn" data-tab="overdue-books">Overdue Books</button>
+                            <button class="tab-btn" data-tab="add-book" id="addBookTabBtn">Add New Book</button>
+                        </div>
+                        
+                        <div class="tab-content active" id="all-books">
+                            <div class="form-group">
+                                <label class="form-label">Search Books</label>
+                                <input type="text" class="form-control-lg" id="bookSearch" placeholder="Search by title, author, or ISBN">
+                            </div>
+                            <div class="book-grid" id="allBooksGrid">
+                                <!-- Books will be dynamically generated -->
+                            </div>
+                        </div>
+                        
+                        <div class="tab-content" id="issued-books">
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Book ID</th>
+                                            <th>Title</th>
+                                            <th>Author</th>
+                                            <th>Issued To</th>
+                                            <th>Issue Date</th>
+                                            <th>Due Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="issuedBooksTableBody">
+                                        <!-- Issued books will be dynamically generated -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-content" id="overdue-books">
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Book ID</th>
+                                            <th>Title</th>
+                                            <th>Author</th>
+                                            <th>Issued To</th>
+                                            <th>Issue Date</th>
+                                            <th>Due Date</th>
+                                            <th>Fine</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="overdueBooksTableBody">
+                                        <!-- Overdue books will be dynamically generated -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-content" id="add-book">
+                            <form id="addBookForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">Book Title</label>
+                                            <input type="text" class="form-control-lg" id="bookTitle" placeholder="Enter book title" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">Author</label>
+                                            <input type="text" class="form-control-lg" id="bookAuthor" placeholder="Enter author name" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">ISBN</label>
+                                            <input type="text" class="form-control-lg" id="bookISBN" placeholder="Enter ISBN">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">Category</label>
+                                            <select class="form-control-lg" id="bookCategory">
+                                                <option value="">Select Category</option>
+                                                <option value="fiction">Fiction</option>
+                                                <option value="non-fiction">Non-Fiction</option>
+                                                <option value="reference">Reference</option>
+                                                <option value="textbook">Textbook</option>
+                                                <option value="magazine">Magazine</option>
+                                                <option value="journal">Journal</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">Publisher</label>
+                                            <input type="text" class="form-control-lg" id="bookPublisher" placeholder="Enter publisher name">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">Publication Year</label>
+                                            <input type="number" class="form-control-lg" id="bookYear" placeholder="Enter publication year" min="1900" max="2024">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">Quantity</label>
+                                            <input type="number" class="form-control-lg" id="bookQuantity" placeholder="Enter quantity" min="1" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">Location</label>
+                                            <input type="text" class="form-control-lg" id="bookLocation" placeholder="Enter shelf location">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Description</label>
+                                    <textarea class="form-control-lg" id="bookDescription" placeholder="Enter book description" rows="3"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-primary">Add Book</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -2303,36 +2697,43 @@
                     <div class="alert alert-info">
                         <i class="bi bi-info-circle"></i> Click "Share Location" to start sharing your live location with parents and school administration.
                     </div>
-                    <div class="bus-map" id="driverBusMap">
-                        <!-- Driver bus map will be dynamically generated -->
-                    </div>
-                    <div class="mt-3">
-                        <h5>Bus Information</h5>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">Bus Number</label>
-                                    <input type="text" class="form-control-lg" id="driverBusNumber" value="AV01" readonly>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">Route</label>
-                                    <input type="text" class="form-control-lg" id="driverRoute" value="Ettimadai - Coimbatore" readonly>
-                                </div>
-                            </div>
+                    <div class="bus-tracking-container">
+                        <div class="bus-map-container">
+                            <div id="driverBusMap"></div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">Status</label>
-                                    <input type="text" class="form-control-lg" id="driverStatus" value="Inactive" readonly>
-                                </div>
+                        <div class="bus-control-panel">
+                            <div class="bus-info-title">
+                                <i class="bi bi-bus-front"></i>
+                                Your Bus Information
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">Students on Board</label>
-                                    <input type="text" class="form-control-lg" id="studentsOnBoard" value="0" readonly>
+                            <div class="bus-info-item">
+                                <span class="bus-info-label">Bus Number:</span>
+                                <span class="bus-info-value" id="driverBusNumber">AV01</span>
+                            </div>
+                            <div class="bus-info-item">
+                                <span class="bus-info-label">Route:</span>
+                                <span class="bus-info-value" id="driverRoute">Ettimadai - Coimbatore</span>
+                            </div>
+                            <div class="bus-info-item">
+                                <span class="bus-info-label">Status:</span>
+                                <span class="bus-status-indicator" id="driverStatus">Inactive</span>
+                            </div>
+                            <div class="bus-info-item">
+                                <span class="bus-info-label">Students on Board:</span>
+                                <span class="bus-info-value" id="studentsOnBoard">0</span>
+                            </div>
+                            <div class="bus-info-item">
+                                <span class="bus-info-label">Current Speed:</span>
+                                <span class="bus-info-value" id="driverSpeed">0 km/h</span>
+                            </div>
+                            <div class="bus-info-item">
+                                <span class="bus-info-label">Last Update:</span>
+                                <span class="bus-info-value" id="driverLastUpdate">-</span>
+                            </div>
+                            <div class="bus-location-history" id="driverLocationHistory">
+                                <div class="location-history-title">Recent Locations</div>
+                                <div id="driverLocationHistoryContent">
+                                    <!-- Location history will be dynamically generated -->
                                 </div>
                             </div>
                         </div>
@@ -2829,6 +3230,94 @@
         </div>
     </div>
 
+    <!-- Add Book Modal -->
+    <div class="modal" id="addBookModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Book</h3>
+                <button class="modal-close" onclick="closeModal('addBookModal')">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addBookForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Book Title</label>
+                                <input type="text" class="form-control-lg" id="bookTitle" placeholder="Enter book title" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Author</label>
+                                <input type="text" class="form-control-lg" id="bookAuthor" placeholder="Enter author name" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">ISBN</label>
+                                <input type="text" class="form-control-lg" id="bookISBN" placeholder="Enter ISBN">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Category</label>
+                                <select class="form-control-lg" id="bookCategory">
+                                    <option value="">Select Category</option>
+                                    <option value="fiction">Fiction</option>
+                                    <option value="non-fiction">Non-Fiction</option>
+                                    <option value="reference">Reference</option>
+                                    <option value="textbook">Textbook</option>
+                                    <option value="magazine">Magazine</option>
+                                    <option value="journal">Journal</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Publisher</label>
+                                <input type="text" class="form-control-lg" id="bookPublisher" placeholder="Enter publisher name">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Publication Year</label>
+                                <input type="number" class="form-control-lg" id="bookYear" placeholder="Enter publication year" min="1900" max="2024">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" class="form-control-lg" id="bookQuantity" placeholder="Enter quantity" min="1" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Location</label>
+                                <input type="text" class="form-control-lg" id="bookLocation" placeholder="Enter shelf location">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control-lg" id="bookDescription" placeholder="Enter book description" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addBookModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="addBook()">Add Book</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification -->
     <div class="toast" id="toast">
         <div class="toast-icon success">
@@ -2859,6 +3348,7 @@
         </button>
     </div>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         // Global Variables
         let currentUser = null;
@@ -2868,7 +3358,16 @@
         let classes = [];
         let announcements = [];
         let buses = [];
+        let books = [];
         let locationSharingInterval = null;
+        let busMap = null;
+        let driverMap = null;
+        let busMarkers = [];
+        let driverMarker = null;
+        let selectedBusId = null;
+        let isDarkTheme = false;
+        let busLocationHistory = [];
+        let driverLocationHistory = [];
 
         // Sample Data
         const sampleStudents = [
@@ -2897,10 +3396,17 @@
         ];
 
         const sampleBuses = [
-            { id: 'AV01', driverName: 'Ramesh Kumar', route: 'Ettimadai - Coimbatore', currentLocation: 'Ettimadai', status: 'Active' },
-            { id: 'AV02', driverName: 'Suresh Babu', route: 'Ettimadai - Palakkad', currentLocation: 'Ettimadai', status: 'Active' },
-            { id: 'P1', driverName: 'Manoj Kumar', route: 'Ettimadai - Coimbatore', currentLocation: 'Ettimadai', status: 'Active' },
-            { id: 'P2', driverName: 'Vijay Kumar', route: 'Ettimadai - Palakkad', currentLocation: 'Ettimadai', status: 'Active' }
+            { id: 'AV01', driverName: 'Ramesh Kumar', route: 'Ettimadai - Coimbatore', currentLocation: { lat: 10.9027, lng: 76.9015 }, status: 'Active', students: 25, speed: 40 },
+            { id: 'AV02', driverName: 'Suresh Babu', route: 'Ettimadai - Palakkad', currentLocation: { lat: 10.7827, lng: 76.6515 }, status: 'Active', students: 20, speed: 35 },
+            { id: 'P1', driverName: 'Manoj Kumar', route: 'Ettimadai - Coimbatore', currentLocation: { lat: 10.8527, lng: 76.8015 }, status: 'Active', students: 15, speed: 45 },
+            { id: 'P2', driverName: 'Vijay Kumar', route: 'Ettimadai - Palakkad', currentLocation: { lat: 10.7327, lng: 76.6015 }, status: 'Active', students: 18, speed: 38 }
+        ];
+
+        const sampleBooks = [
+            { id: 'B001', title: 'Mathematics for Class 5', author: 'R.D. Sharma', isbn: '978-93-5141-234-5', category: 'textbook', publisher: 'Dhanpat Rai', year: 2020, quantity: 50, available: 35, location: 'Shelf A-1' },
+            { id: 'B002', title: 'Science for Class 5', author: 'Lakhmir Singh', isbn: '978-93-87445-123-4', category: 'textbook', publisher: 'S. Chand', year: 2021, quantity: 40, available: 28, location: 'Shelf A-2' },
+            { id: 'B003', title: 'Harry Potter and the Philosopher\'s Stone', author: 'J.K. Rowling', isbn: '978-0-7475-3269-9', category: 'fiction', publisher: 'Bloomsbury', year: 1997, quantity: 20, available: 15, location: 'Shelf B-1' },
+            { id: 'B004', title: 'The Diary of a Young Girl', author: 'Anne Frank', isbn: '978-0-14-028655-2', category: 'non-fiction', publisher: 'Penguin', year: 1947, quantity: 15, available: 10, location: 'Shelf B-2' }
         ];
 
         // DOM Elements
@@ -2912,13 +3418,55 @@
         const sidebarMenu = document.getElementById('sidebarMenu');
         const menuToggle = document.getElementById('menuToggle');
         const toast = document.getElementById('toast');
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             initializeApp();
             updateTime();
             setInterval(updateTime, 1000);
+            initializeTheme();
         });
+
+        // Initialize Theme
+        function initializeTheme() {
+            // Check for saved theme preference or default to light
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                enableDarkTheme();
+            } else {
+                enableLightTheme();
+            }
+
+            // Add theme toggle event listener
+            themeToggle.addEventListener('click', toggleTheme);
+        }
+
+        // Toggle Theme
+        function toggleTheme() {
+            if (isDarkTheme) {
+                enableLightTheme();
+            } else {
+                enableDarkTheme();
+            }
+        }
+
+        // Enable Dark Theme
+        function enableDarkTheme() {
+            document.body.classList.add('dark-theme');
+            themeIcon.className = 'bi bi-sun-fill';
+            isDarkTheme = true;
+            localStorage.setItem('theme', 'dark');
+        }
+
+        // Enable Light Theme
+        function enableLightTheme() {
+            document.body.classList.remove('dark-theme');
+            themeIcon.className = 'bi bi-moon-fill';
+            isDarkTheme = false;
+            localStorage.setItem('theme', 'light');
+        }
 
         // Initialize App
         function initializeApp() {
@@ -2928,6 +3476,7 @@
             classes = [...sampleClasses];
             announcements = [...sampleAnnouncements];
             buses = [...sampleBuses];
+            books = [...sampleBooks];
 
             // Setup event listeners
             setupEventListeners();
@@ -2950,8 +3499,11 @@
                 const password = document.getElementById('password').value;
                 const role = document.querySelector('.user-type-btn.active').dataset.role;
                 
-                if (email && password) {
+                // Validate login credentials
+                if (validateLogin(email, password, role)) {
                     login(role, email);
+                } else {
+                    showToast('Login Error', 'Invalid email or password', 'error');
                 }
             });
 
@@ -3057,6 +3609,47 @@
                     document.getElementById(tabId).classList.add('active');
                 });
             });
+
+            // Book search
+            document.getElementById('bookSearch').addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                filterBooks(searchTerm);
+            });
+
+            // Add book form submission
+            document.getElementById('addBookForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                addBook();
+            });
+
+            // Bus selector change
+            document.getElementById('busSelector').addEventListener('change', (e) => {
+                const busId = e.target.value;
+                if (busId) {
+                    selectBus(busId);
+                }
+            });
+        }
+
+        // Validate Login
+        function validateLogin(email, password, role) {
+            // Define valid credentials
+            const validCredentials = {
+                admin: { email: 'admin@123', password: 'admin' },
+                teacher: { email: 'teacher1@123', password: 'teacher1' },
+                library: { email: 'library@123', password: 'library' },
+                student: { email: 'student@123', password: 'student' },
+                driver: { email: 'driver@123', password: 'driver' }
+            };
+
+            // Check if credentials match
+            if (validCredentials[role] && 
+                validCredentials[role].email === email && 
+                validCredentials[role].password === password) {
+                return true;
+            }
+            
+            return false;
         }
 
         // Login Function
@@ -3105,8 +3698,10 @@
                     { icon: 'bi-clipboard-check', text: 'Marks', page: 'marks' },
                     { icon: 'bi-file-earmark-bar-graph', text: 'Reports', page: 'reports' },
                     { icon: 'bi-bus-front', text: 'Bus Tracking', page: 'busTracking' },
+                    { icon: 'bi-book', text: 'Library', page: 'library' },
                     { icon: 'bi-megaphone', text: 'Announcements', page: 'announcements' },
                     { icon: 'bi-chat-dots', text: 'Messages', page: 'messages' },
+                    { icon: 'bi-cloud-download', text: 'Export Data', page: 'exportData' },
                     { icon: 'bi-gear', text: 'Settings', page: 'settings' }
                 ];
             } else if (role === 'teacher') {
@@ -3117,6 +3712,14 @@
                     { icon: 'bi-calendar-week', text: 'Timetable', page: 'timetable' },
                     { icon: 'bi-clipboard-check', text: 'Marks', page: 'marks' },
                     { icon: 'bi-file-earmark-bar-graph', text: 'Reports', page: 'reports' },
+                    { icon: 'bi-book', text: 'Library', page: 'library' },
+                    { icon: 'bi-megaphone', text: 'Announcements', page: 'announcements' },
+                    { icon: 'bi-chat-dots', text: 'Messages', page: 'messages' }
+                ];
+            } else if (role === 'library') {
+                menuItems = [
+                    { icon: 'bi-speedometer2', text: 'Dashboard', page: 'dashboard' },
+                    { icon: 'bi-book', text: 'Library', page: 'library' },
                     { icon: 'bi-megaphone', text: 'Announcements', page: 'announcements' },
                     { icon: 'bi-chat-dots', text: 'Messages', page: 'messages' }
                 ];
@@ -3127,8 +3730,10 @@
                     { icon: 'bi-calendar-week', text: 'Timetable', page: 'timetable' },
                     { icon: 'bi-clipboard-check', text: 'Marks', page: 'marks' },
                     { icon: 'bi-file-earmark-bar-graph', text: 'Reports', page: 'reports' },
+                    { icon: 'bi-book', text: 'Library', page: 'library' },
                     { icon: 'bi-megaphone', text: 'Announcements', page: 'announcements' },
-                    { icon: 'bi-chat-dots', text: 'Messages', page: 'messages' }
+                    { icon: 'bi-chat-dots', text: 'Messages', page: 'messages' },
+                    { icon: 'bi-bus-front', text: 'Bus Tracking', page: 'busTracking' }
                 ];
             } else if (role === 'driver') {
                 menuItems = [
@@ -3158,6 +3763,12 @@
                     // Get the page to show
                     const page = link.getAttribute('data-page');
                     
+                    // Handle special pages
+                    if (page === 'exportData') {
+                        exportData();
+                        return;
+                    }
+                    
                     // Hide all content sections
                     document.querySelectorAll('[id$="Content"]').forEach(content => {
                         content.style.display = 'none';
@@ -3185,6 +3796,8 @@
                             loadReportsContent();
                         } else if (page === 'busTracking') {
                             loadBusTrackingContent();
+                        } else if (page === 'library') {
+                            loadLibraryContent();
                         } else if (page === 'messages') {
                             loadMessagesContent();
                         }
@@ -3293,10 +3906,10 @@
                     { icon: 'bi-clipboard-check', title: 'Marks', description: 'Manage student marks and grades' },
                     { icon: 'bi-file-earmark-bar-graph', title: 'Reports', description: 'Generate and manage reports' },
                     { icon: 'bi-bus-front', title: 'Bus Tracking', description: 'Track school buses in real-time' },
+                    { icon: 'bi-book', title: 'Library', description: 'Manage library books and circulation' },
                     { icon: 'bi-megaphone', title: 'Announcements', description: 'Create and manage announcements' },
                     { icon: 'bi-chat-dots', title: 'Messages', description: 'Communicate with staff and parents' },
-                    { icon: 'bi-cloud-download', title: 'Export Data', description: 'Export data as CSV files' },
-                    { icon: 'bi-graph-up', title: 'Analytics', description: 'View school performance analytics' }
+                    { icon: 'bi-cloud-download', title: 'Export Data', description: 'Export data as CSV files' }
                 ];
             } else if (currentUserRole === 'teacher') {
                 features = [
@@ -3305,9 +3918,15 @@
                     { icon: 'bi-calendar-week', title: 'Timetable', description: 'View class timetable' },
                     { icon: 'bi-clipboard-check', title: 'Marks', description: 'Enter student marks' },
                     { icon: 'bi-file-earmark-bar-graph', title: 'Reports', description: 'Generate student reports' },
+                    { icon: 'bi-book', title: 'Library', description: 'Manage library books' },
                     { icon: 'bi-megaphone', title: 'Announcements', description: 'View announcements' },
-                    { icon: 'bi-chat-dots', title: 'Messages', description: 'Communicate with parents' },
-                    { icon: 'bi-telephone', title: 'Contact Parents', description: 'Call or message parents' }
+                    { icon: 'bi-chat-dots', title: 'Messages', description: 'Communicate with parents' }
+                ];
+            } else if (currentUserRole === 'library') {
+                features = [
+                    { icon: 'bi-book', title: 'Library', description: 'Manage library books and circulation' },
+                    { icon: 'bi-megaphone', title: 'Announcements', description: 'View announcements' },
+                    { icon: 'bi-chat-dots', title: 'Messages', description: 'Communicate with staff and parents' }
                 ];
             } else if (currentUserRole === 'student') {
                 features = [
@@ -3315,8 +3934,10 @@
                     { icon: 'bi-calendar-week', title: 'Timetable', description: 'View class timetable' },
                     { icon: 'bi-clipboard-check', title: 'Marks', description: 'View marks and grades' },
                     { icon: 'bi-file-earmark-bar-graph', title: 'Reports', description: 'View progress reports' },
+                    { icon: 'bi-book', title: 'Library', description: 'Browse and borrow books' },
                     { icon: 'bi-megaphone', title: 'Announcements', description: 'View school announcements' },
-                    { icon: 'bi-chat-dots', title: 'Messages', description: 'Communicate with teachers' }
+                    { icon: 'bi-chat-dots', title: 'Messages', description: 'Communicate with teachers' },
+                    { icon: 'bi-bus-front', title: 'Bus Tracking', description: 'Track your school bus' }
                 ];
             }
             
@@ -3361,23 +3982,30 @@
         function initializeDriverBusMap() {
             const driverBusMap = document.getElementById('driverBusMap');
             
-            // Create a simple map visualization
-            driverBusMap.innerHTML = `
-                <div style="position: relative; width: 100%; height: 100%; background: #f0f8ff; border-radius: 15px;">
-                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
-                        <i class="bi bi-bus-front" style="font-size: 48px; color: var(--amrita-orange);"></i>
-                        <p style="margin-top: 10px; font-weight: 600;">Your Bus Location</p>
-                        <p style="color: #64748b;">Location sharing is currently inactive</p>
-                    </div>
-                </div>
-            `;
+            // Initialize map
+            driverMap = L.map('driverBusMap').setView([10.9027, 76.9015], 13);
+            
+            // Add tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(driverMap);
+            
+            // Create a custom icon for the bus
+            const busIcon = L.divIcon({
+                html: '<i class="bi bi-bus-front" style="color: var(--amrita-orange); font-size: 24px;"></i>',
+                iconSize: [30, 30],
+                className: 'bus-marker-icon'
+            });
+            
+            // Add initial marker
+            driverMarker = L.marker([10.9027, 76.9015], { icon: busIcon }).addTo(driverMap);
+            driverMarker.bindPopup('Your Bus Location').openPopup();
         }
 
         // Toggle Location Sharing
         function toggleLocationSharing() {
             const shareLocationBtn = document.getElementById('shareLocationBtn');
             const driverStatus = document.getElementById('driverStatus');
-            const driverBusMap = document.getElementById('driverBusMap');
             
             if (locationSharingInterval) {
                 // Stop location sharing
@@ -3386,18 +4014,13 @@
                 shareLocationBtn.textContent = 'Share Location';
                 shareLocationBtn.classList.remove('btn-danger');
                 shareLocationBtn.classList.add('btn-primary');
-                driverStatus.value = 'Inactive';
+                driverStatus.textContent = 'Inactive';
+                driverStatus.className = 'bus-status-indicator inactive';
                 
-                // Update map
-                driverBusMap.innerHTML = `
-                    <div style="position: relative; width: 100%; height: 100%; background: #f0f8ff; border-radius: 15px;">
-                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
-                            <i class="bi bi-bus-front" style="font-size: 48px; color: var(--amrita-orange);"></i>
-                            <p style="margin-top: 10px; font-weight: 600;">Your Bus Location</p>
-                            <p style="color: #64748b;">Location sharing is currently inactive</p>
-                        </div>
-                    </div>
-                `;
+                // Remove marker
+                if (driverMarker) {
+                    driverMap.removeLayer(driverMarker);
+                }
                 
                 showToast('Location Sharing', 'Location sharing has been stopped', 'success');
             } else {
@@ -3405,7 +4028,8 @@
                 shareLocationBtn.textContent = 'Stop Sharing';
                 shareLocationBtn.classList.remove('btn-primary');
                 shareLocationBtn.classList.add('btn-danger');
-                driverStatus.value = 'Active';
+                driverStatus.textContent = 'Active';
+                driverStatus.className = 'bus-status-indicator active';
                 
                 // Update map with live location
                 updateDriverLocation();
@@ -3417,26 +4041,558 @@
 
         // Update Driver Location
         function updateDriverLocation() {
-            const driverBusMap = document.getElementById('driverBusMap');
+            if (!driverMap || !driverMarker) return;
             
             // Simulate location update
             const locations = [
-                'Ettimadai', 'Palakkad Road', 'Coimbatore', 'Walayar', 'Kanjikode'
+                { lat: 10.9027, lng: 76.9015, name: 'Ettimadai' },
+                { lat: 10.9127, lng: 76.9115, name: 'Ettimadai Main Road' },
+                { lat: 10.9227, lng: 76.9215, name: 'Palakkad Road' },
+                { lat: 10.9327, lng: 76.9315, name: 'Coimbatore Bypass' },
+                { lat: 10.9427, lng: 76.9415, name: 'Coimbatore City' }
             ];
-            const randomLocation = locations[Math.floor(Math.random() * locations.length)];
             
-            // Update map
-            driverBusMap.innerHTML = `
-                <div style="position: relative; width: 100%; height: 100%; background: #f0f8ff; border-radius: 15px;">
-                    <div class="bus-marker" style="top: ${Math.random() * 80 + 10}%; left: ${Math.random() * 80 + 10}%;">
-                        <i class="bi bi-bus-front"></i>
+            const randomLocation = locations[Math.floor(Math.random() * locations.length)];
+            const speed = Math.floor(Math.random() * 20) + 30; // Random speed between 30-50 km/h
+            
+            // Update marker position
+            driverMarker.setLatLng([randomLocation.lat, randomLocation.lng]);
+            driverMarker.setPopupContent(`Current Location: ${randomLocation.name}<br>Speed: ${speed} km/h<br>Last updated: ${new Date().toLocaleTimeString()}`).openPopup();
+            
+            // Update UI elements
+            document.getElementById('driverSpeed').textContent = `${speed} km/h`;
+            document.getElementById('driverLastUpdate').textContent = new Date().toLocaleTimeString();
+            
+            // Update students on board
+            const studentsOnBoard = document.getElementById('studentsOnBoard');
+            if (studentsOnBoard) {
+                studentsOnBoard.value = Math.floor(Math.random() * 30) + 10;
+            }
+            
+            // Add to location history
+            addToDriverLocationHistory(randomLocation.name, speed);
+        }
+
+        // Add to Driver Location History
+        function addToDriverLocationHistory(locationName, speed) {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            
+            driverLocationHistory.unshift({
+                location: locationName,
+                speed: speed,
+                time: timeString
+            });
+            
+            // Keep only the last 5 entries
+            if (driverLocationHistory.length > 5) {
+                driverLocationHistory.pop();
+            }
+            
+            // Update UI
+            updateDriverLocationHistoryUI();
+        }
+
+        // Update Driver Location History UI
+        function updateDriverLocationHistoryUI() {
+            const historyContent = document.getElementById('driverLocationHistoryContent');
+            
+            if (historyContent) {
+                historyContent.innerHTML = driverLocationHistory.map(entry => `
+                    <div class="location-history-item">
+                        <span class="location-name">${entry.location}</span>
+                        <span class="location-time">${entry.time} (${entry.speed} km/h)</span>
                     </div>
-                    <div style="position: absolute; bottom: 20px; left: 20px; background: white; padding: 10px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                        <p style="margin: 0; font-weight: 600;">Current Location: ${randomLocation}</p>
-                        <p style="margin: 0; font-size: 12px; color: #64748b;">Last updated: ${new Date().toLocaleTimeString()}</p>
+                `).join('');
+            }
+        }
+
+        // Load Bus Tracking Content
+        function loadBusTrackingContent() {
+            const busMap = document.getElementById('busMap');
+            const busTableBody = document.getElementById('busTableBody');
+            const busSelector = document.getElementById('busSelector');
+            
+            // Initialize map if not already initialized
+            if (!busMap) return;
+            
+            if (!busMap._leaflet_id) {
+                // Initialize map
+                busMap = L.map('busMap').setView([10.9027, 76.9015], 12);
+                
+                // Add tile layer
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(busMap);
+                
+                // Create a custom icon for the bus
+                const busIcon = L.divIcon({
+                    html: '<i class="bi bi-bus-front" style="color: var(--amrita-orange); font-size: 24px;"></i>',
+                    iconSize: [30, 30],
+                    className: 'bus-marker-icon'
+                });
+                
+                // Add markers for each bus
+                buses.forEach(bus => {
+                    const marker = L.marker([bus.currentLocation.lat, bus.currentLocation.lng], { icon: busIcon }).addTo(busMap);
+                    marker.bindPopup(`
+                        <strong>Bus ${bus.id}</strong><br>
+                        Driver: ${bus.driverName}<br>
+                        Route: ${bus.route}<br>
+                        Status: ${bus.status}<br>
+                        Students: ${bus.students}<br>
+                        Speed: ${bus.speed} km/h
+                    `);
+                    
+                    // Add click event to update info panel
+                    marker.on('click', () => {
+                        selectBus(bus.id);
+                    });
+                    
+                    busMarkers.push(marker);
+                });
+            }
+            
+            // Populate bus selector
+            if (busSelector) {
+                busSelector.innerHTML = '<option value="">Select a bus to view details</option>' + 
+                    buses.map(bus => `<option value="${bus.id}">Bus ${bus.id} - ${bus.driverName}</option>`).join('');
+            }
+            
+            // Populate bus table
+            busTableBody.innerHTML = buses.map(bus => `
+                <tr>
+                    <td>${bus.id}</td>
+                    <td>${bus.driverName}</td>
+                    <td>${bus.route}</td>
+                    <td>${bus.status}</td>
+                    <td>${bus.students}</td>
+                    <td>
+                        <div class="table-actions">
+                            <button class="action-btn view" onclick="selectBus('${bus.id}')">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="action-btn message" onclick="messageDriver('${bus.id}')">
+                                <i class="bi bi-chat-dots"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Select Bus
+        function selectBus(busId) {
+            selectedBusId = busId;
+            const bus = buses.find(b => b.id === busId);
+            
+            if (bus) {
+                // Update bus details panel
+                document.getElementById('selectedBusNumber').textContent = bus.id;
+                document.getElementById('selectedBusDriver').textContent = bus.driverName;
+                document.getElementById('selectedBusRoute').textContent = bus.route;
+                document.getElementById('selectedBusStatus').textContent = bus.status;
+                document.getElementById('selectedBusStatus').className = `bus-status-indicator ${bus.status.toLowerCase()}`;
+                document.getElementById('selectedBusStudents').textContent = bus.students;
+                document.getElementById('selectedBusSpeed').textContent = `${bus.speed} km/h`;
+                document.getElementById('selectedBusLastUpdate').textContent = 'Just now';
+                
+                // Show students list
+                const busStudentsList = document.getElementById('busStudentsList');
+                if (busStudentsList) {
+                    busStudentsList.style.display = 'block';
+                    
+                    // Generate sample students for this bus
+                    const busStudents = students.filter(s => s.bus === bus.id).slice(0, 5);
+                    const studentsListContent = document.getElementById('busStudentsListContent');
+                    
+                    if (studentsListContent) {
+                        studentsListContent.innerHTML = busStudents.map(student => `
+                            <div class="bus-student-item">
+                                <div class="bus-student-avatar">${student.name.substring(0, 2).toUpperCase()}</div>
+                                <div>${student.name} (${student.id})</div>
+                            </div>
+                        `).join('');
+                    }
+                }
+                
+                // Show location history
+                const busLocationHistory = document.getElementById('busLocationHistory');
+                if (busLocationHistory) {
+                    busLocationHistory.style.display = 'block';
+                    
+                    // Generate sample location history
+                    const locationHistoryContent = document.getElementById('locationHistoryContent');
+                    if (locationHistoryContent) {
+                        locationHistoryContent.innerHTML = `
+                            <div class="location-history-item">
+                                <span class="location-name">Ettimadai</span>
+                                <span class="location-time">10:30 AM (40 km/h)</span>
+                            </div>
+                            <div class="location-history-item">
+                                <span class="location-name">Ettimadai Main Road</span>
+                                <span class="location-time">10:35 AM (45 km/h)</span>
+                            </div>
+                            <div class="location-history-item">
+                                <span class="location-name">Palakkad Road</span>
+                                <span class="location-time">10:40 AM (35 km/h)</span>
+                            </div>
+                        `;
+                    }
+                }
+                
+                // Center map on selected bus
+                if (busMap && bus.currentLocation) {
+                    busMap.setView([bus.currentLocation.lat, bus.currentLocation.lng], 14);
+                }
+                
+                // Highlight selected bus in table
+                document.querySelectorAll('#busTableBody tr').forEach(row => {
+                    row.style.backgroundColor = '';
+                });
+                
+                const selectedRow = document.querySelector(`#busTableBody tr:has(td:contains("${busId}"))`);
+                if (selectedRow) {
+                    selectedRow.style.backgroundColor = 'rgba(255, 107, 53, 0.1)';
+                }
+            }
+        }
+
+        // Track Selected Bus
+        function trackSelectedBus() {
+            if (!selectedBusId) {
+                showToast('Error', 'Please select a bus to track', 'error');
+                return;
+            }
+            
+            const bus = buses.find(b => b.id === selectedBusId);
+            if (bus && busMap) {
+                // Center map on bus
+                busMap.setView([bus.currentLocation.lat, bus.currentLocation.lng], 15);
+                
+                // Open popup for the bus marker
+                const marker = busMarkers.find(m => {
+                    // This is a simplified check - in a real app, you'd have a better way to find the marker
+                    return true;
+                });
+                
+                if (marker) {
+                    marker.openPopup();
+                }
+                
+                showToast('Bus Tracking', `Now tracking Bus ${bus.id}`, 'success');
+            }
+        }
+
+        // Message Driver
+        function messageDriver(busId) {
+            const bus = buses.find(b => b.id === busId);
+            if (bus) {
+                showToast('Message Driver', `Opening message interface for ${bus.driverName}`, 'success');
+            }
+        }
+
+        // Refresh Bus Locations
+        function refreshBusLocations() {
+            // Simulate location updates
+            buses.forEach(bus => {
+                // Randomly update location slightly
+                bus.currentLocation.lat += (Math.random() - 0.5) * 0.01;
+                bus.currentLocation.lng += (Math.random() - 0.5) * 0.01;
+                bus.speed = Math.floor(Math.random() * 20) + 30; // Random speed between 30-50 km/h
+            });
+            
+            // Update map markers
+            busMarkers.forEach((marker, index) => {
+                if (buses[index]) {
+                    marker.setLatLng([buses[index].currentLocation.lat, buses[index].currentLocation.lng]);
+                    
+                    // Update popup content
+                    marker.setPopupContent(`
+                        <strong>Bus ${buses[index].id}</strong><br>
+                        Driver: ${buses[index].driverName}<br>
+                        Route: ${buses[index].route}<br>
+                        Status: ${buses[index].status}<br>
+                        Students: ${buses[index].students}<br>
+                        Speed: ${buses[index].speed} km/h
+                    `);
+                }
+            });
+            
+            // Update table
+            loadBusTrackingContent();
+            
+            // Update selected bus details if one is selected
+            if (selectedBusId) {
+                selectBus(selectedBusId);
+            }
+            
+            showToast('Bus Locations', 'Bus locations refreshed', 'success');
+        }
+
+        // Load Library Content
+        function loadLibraryContent() {
+            // Check if user has permission to modify library
+            const canModifyLibrary = currentUserRole === 'admin' || currentUserRole === 'library';
+            
+            // Update library stats
+            document.getElementById('totalBooks').textContent = books.length;
+            document.getElementById('availableBooks').textContent = books.filter(b => b.available > 0).length;
+            document.getElementById('issuedBooks').textContent = books.filter(b => b.available < b.quantity).length;
+            document.getElementById('overdueBooks').textContent = Math.floor(Math.random() * 10) + 5;
+            
+            // Load books grid
+            loadAllBooks();
+            
+            // Load issued books table
+            loadIssuedBooks();
+            
+            // Load overdue books table
+            loadOverdueBooks();
+            
+            // Show/hide add book button based on permissions
+            const addBookBtn = document.getElementById('addBookBtn');
+            const addBookTabBtn = document.getElementById('addBookTabBtn');
+            
+            if (addBookBtn) {
+                addBookBtn.style.display = canModifyLibrary ? 'block' : 'none';
+            }
+            
+            if (addBookTabBtn) {
+                addBookTabBtn.style.display = canModifyLibrary ? 'block' : 'none';
+            }
+            
+            // Disable form inputs if user can't modify
+            const bookInputs = document.querySelectorAll('#addBookForm input, #addBookForm select, #addBookForm textarea');
+            bookInputs.forEach(input => {
+                input.disabled = !canModifyLibrary;
+            });
+        }
+
+        // Load All Books
+        function loadAllBooks() {
+            const allBooksGrid = document.getElementById('allBooksGrid');
+            
+            allBooksGrid.innerHTML = books.map(book => `
+                <div class="book-card" onclick="viewBook('${book.id}')">
+                    <div class="book-cover">
+                        <i class="bi bi-book"></i>
+                    </div>
+                    <div class="book-details">
+                        <div class="book-title">${book.title}</div>
+                        <div class="book-author">${book.author}</div>
+                        <div class="book-status ${book.available > 0 ? 'available' : 'issued'}">
+                            ${book.available > 0 ? `Available (${book.available})` : 'Issued'}
+                        </div>
                     </div>
                 </div>
-            `;
+            `).join('');
+        }
+
+        // Load Issued Books
+        function loadIssuedBooks() {
+            const issuedBooksTableBody = document.getElementById('issuedBooksTableBody');
+            
+            // Sample issued books data
+            const issuedBooks = [
+                { bookId: 'B001', title: 'Mathematics for Class 5', author: 'R.D. Sharma', issuedTo: 'Alice Smith (AV001)', issueDate: '2024-10-15', dueDate: '2024-11-15' },
+                { bookId: 'B003', title: 'Harry Potter and the Philosopher\'s Stone', author: 'J.K. Rowling', issuedTo: 'Bob Johnson (AV002)', issueDate: '2024-10-20', dueDate: '2024-11-20' }
+            ];
+            
+            issuedBooksTableBody.innerHTML = issuedBooks.map(book => `
+                <tr>
+                    <td>${book.bookId}</td>
+                    <td>${book.title}</td>
+                    <td>${book.author}</td>
+                    <td>${book.issuedTo}</td>
+                    <td>${formatDate(book.issueDate)}</td>
+                    <td>${formatDate(book.dueDate)}</td>
+                    <td>
+                        <div class="table-actions">
+                            <button class="action-btn view" onclick="viewIssuedBook('${book.bookId}')">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="action-btn edit" onclick="returnBook('${book.bookId}')" ${currentUserRole !== 'admin' && currentUserRole !== 'library' ? 'disabled' : ''}>
+                                <i class="bi bi-arrow-return-left"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Load Overdue Books
+        function loadOverdueBooks() {
+            const overdueBooksTableBody = document.getElementById('overdueBooksTableBody');
+            
+            // Sample overdue books data
+            const overdueBooks = [
+                { bookId: 'B002', title: 'Science for Class 5', author: 'Lakhmir Singh', issuedTo: 'Carol Williams (AV003)', issueDate: '2024-09-15', dueDate: '2024-10-15', fine: 50 }
+            ];
+            
+            overdueBooksTableBody.innerHTML = overdueBooks.map(book => `
+                <tr>
+                    <td>${book.bookId}</td>
+                    <td>${book.title}</td>
+                    <td>${book.author}</td>
+                    <td>${book.issuedTo}</td>
+                    <td>${formatDate(book.issueDate)}</td>
+                    <td>${formatDate(book.dueDate)}</td>
+                    <td>₹${book.fine}</td>
+                    <td>
+                        <div class="table-actions">
+                            <button class="action-btn view" onclick="viewOverdueBook('${book.bookId}')">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="action-btn edit" onclick="returnBook('${book.bookId}')" ${currentUserRole !== 'admin' && currentUserRole !== 'library' ? 'disabled' : ''}>
+                                <i class="bi bi-arrow-return-left"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Filter Books
+        function filterBooks(searchTerm) {
+            const filteredBooks = books.filter(book => 
+                book.title.toLowerCase().includes(searchTerm) ||
+                book.author.toLowerCase().includes(searchTerm) ||
+                book.isbn.includes(searchTerm)
+            );
+            
+            const allBooksGrid = document.getElementById('allBooksGrid');
+            
+            if (filteredBooks.length === 0) {
+                allBooksGrid.innerHTML = '<div class="text-center p-4">No books found matching your search.</div>';
+            } else {
+                allBooksGrid.innerHTML = filteredBooks.map(book => `
+                    <div class="book-card" onclick="viewBook('${book.id}')">
+                        <div class="book-cover">
+                            <i class="bi bi-book"></i>
+                        </div>
+                        <div class="book-details">
+                            <div class="book-title">${book.title}</div>
+                            <div class="book-author">${book.author}</div>
+                            <div class="book-status ${book.available > 0 ? 'available' : 'issued'}">
+                                ${book.available > 0 ? `Available (${book.available})` : 'Issued'}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Add Book
+        function addBook() {
+            // Check if user has permission
+            if (currentUserRole !== 'admin' && currentUserRole !== 'library') {
+                showToast('Permission Denied', 'You do not have permission to add books', 'error');
+                return;
+            }
+            
+            const title = document.getElementById('bookTitle').value;
+            const author = document.getElementById('bookAuthor').value;
+            const isbn = document.getElementById('bookISBN').value;
+            const category = document.getElementById('bookCategory').value;
+            const publisher = document.getElementById('bookPublisher').value;
+            const year = document.getElementById('bookYear').value;
+            const quantity = document.getElementById('bookQuantity').value;
+            const location = document.getElementById('bookLocation').value;
+            const description = document.getElementById('bookDescription').value;
+            
+            // Validate required fields
+            if (!title || !author || !quantity) {
+                showToast('Error', 'Please fill all required fields', 'error');
+                return;
+            }
+            
+            // Generate book ID
+            const bookId = 'B' + String(books.length + 1).padStart(3, '0');
+            
+            // Create new book object
+            const newBook = {
+                id: bookId,
+                title: title,
+                author: author,
+                isbn: isbn,
+                category: category,
+                publisher: publisher,
+                year: year,
+                quantity: parseInt(quantity),
+                available: parseInt(quantity),
+                location: location,
+                description: description
+            };
+            
+            // Add to books array
+            books.push(newBook);
+            
+            // Refresh books grid
+            loadAllBooks();
+            
+            // Update library stats
+            loadLibraryContent();
+            
+            // Close modal
+            closeModal('addBookModal');
+            
+            // Show success message
+            showToast('Success', 'Book added successfully', 'success');
+        }
+
+        // View Book
+        function viewBook(bookId) {
+            const book = books.find(b => b.id === bookId);
+            if (book) {
+                showToast('Book Details', `Viewing details for ${book.title}`, 'success');
+            }
+        }
+
+        // View Issued Book
+        function viewIssuedBook(bookId) {
+            showToast('Issued Book Details', `Viewing details for book ${bookId}`, 'success');
+        }
+
+        // View Overdue Book
+        function viewOverdueBook(bookId) {
+            showToast('Overdue Book Details', `Viewing details for book ${bookId}`, 'success');
+        }
+
+        // Return Book
+        function returnBook(bookId) {
+            // Check if user has permission
+            if (currentUserRole !== 'admin' && currentUserRole !== 'library') {
+                showToast('Permission Denied', 'You do not have permission to return books', 'error');
+                return;
+            }
+            
+            const book = books.find(b => b.id === bookId);
+            if (book) {
+                book.available++;
+                loadAllBooks();
+                loadIssuedBooks();
+                loadOverdueBooks();
+                showToast('Success', 'Book returned successfully', 'success');
+            }
+        }
+
+        // Export Data
+        function exportData() {
+            // Create a simple CSV export for demonstration
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + "ID,Name,Class,Section,Parent Phone,Parent Email,Bus\n"
+                + students.map(s => `${s.id},${s.name},${s.class},${s.section},${s.parentPhone},${s.parentEmail},${s.bus}`).join("\n");
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "students_data.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showToast('Export Successful', 'Student data exported to CSV', 'success');
         }
 
         // Load Students Content
@@ -3629,44 +4785,6 @@
                 classOptions.map(cls => `<option value="${cls}">${cls === 'LKG' || cls === 'UKG' ? cls : 'Class ' + cls}</option>`).join('');
         }
 
-        // Load Bus Tracking Content
-        function loadBusTrackingContent() {
-            const busMap = document.getElementById('busMap');
-            const busTableBody = document.getElementById('busTableBody');
-            
-            // Create bus map
-            busMap.innerHTML = `
-                <div style="position: relative; width: 100%; height: 100%; background: #f0f8ff; border-radius: 15px;">
-                    ${buses.map(bus => `
-                        <div class="bus-marker" style="top: ${Math.random() * 80 + 10}%; left: ${Math.random() * 80 + 10}%;">
-                            ${bus.id}
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-            
-            // Populate bus table
-            busTableBody.innerHTML = buses.map(bus => `
-                <tr>
-                    <td>${bus.id}</td>
-                    <td>${bus.driverName}</td>
-                    <td>${bus.route}</td>
-                    <td>${bus.currentLocation}</td>
-                    <td><span class="status-badge active">${bus.status}</span></td>
-                    <td>
-                        <div class="table-actions">
-                            <button class="action-btn view" onclick="viewBus('${bus.id}')">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                            <button class="action-btn message" onclick="messageDriver('${bus.id}')">
-                                <i class="bi bi-chat-dots"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
         // Load Messages Content
         function loadMessagesContent() {
             // Messages content is already in HTML
@@ -3695,6 +4813,11 @@
         // Show Compose Message Modal
         function showComposeMessageModal() {
             document.getElementById('composeMessageModal').classList.add('active');
+        }
+
+        // Show Add Book Modal
+        function showAddBookModal() {
+            document.getElementById('addBookModal').classList.add('active');
         }
 
         // Close Modal
@@ -3995,59 +5118,6 @@
             if (bus) {
                 showToast('Bus Details', `Viewing details for bus ${busId}`, 'success');
             }
-        }
-
-        // Message Driver
-        function messageDriver(busId) {
-            const bus = buses.find(b => b.id === busId);
-            if (bus) {
-                showToast('Message Driver', `Opening message interface for ${bus.driverName}`, 'success');
-            }
-        }
-
-        // Refresh Bus Locations
-        function refreshBusLocations() {
-            loadBusTrackingContent();
-            showToast('Bus Locations', 'Bus locations refreshed', 'success');
-        }
-
-        // Export Data as CSV
-        function exportDataToCSV(data, filename) {
-            // Convert data to CSV
-            const csv = convertToCSV(data);
-            
-            // Create a blob
-            const blob = new Blob([csv], { type: 'text/csv' });
-            
-            // Create a link
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            
-            // Click the link
-            a.click();
-            
-            // Clean up
-            URL.revokeObjectURL(url);
-            
-            showToast('Export Successful', `Data exported to ${filename}`, 'success');
-        }
-
-        // Convert to CSV
-        function convertToCSV(data) {
-            if (!data || data.length === 0) return '';
-            
-            // Get headers
-            const headers = Object.keys(data[0]);
-            
-            // Create CSV content
-            const csvContent = [
-                headers.join(','),
-                ...data.map(row => headers.map(header => row[header]).join(','))
-            ].join('\n');
-            
-            return csvContent;
         }
 
         // Update Time

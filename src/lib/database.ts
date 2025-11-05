@@ -347,7 +347,7 @@ class Database {
   getBus(busId: string): Bus | null {
     return this.buses.get(busId) || null;
   }
-
+ 
   addBus(bus: Bus): Bus {
     this.buses.set(bus.id, bus);
     return bus;

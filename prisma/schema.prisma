@@ -1,0 +1,330 @@
+// Prisma Schema for Amrita Vidyalayam SMS
+// Uses Neon PostgreSQL Database
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+// Users and Authentication
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(STUDENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  student   Student?
+  teacher   Teacher?
+  driver    Driver?
+
+  @@index([email])
+  @@index([role])
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+  DRIVER
+}
+
+// Students
+model Student {
+  id           String   @id @default(cuid())
+  userId       String?  @unique
+  user         User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  studentId    String   @unique // e.g., AV001
+  name         String
+  class        String
+  section      String
+  parentPhone  String
+  parentEmail  String
+  studentPhone String?
+  studentEmail String?
+  busId        String?
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  bus          Bus?          @relation(fields: [busId], references: [id])
+  attendance   Attendance[]
+  marks        Marks[]
+  borrowedBooks BorrowedBook[]
+
+  @@index([studentId])
+  @@index([class, section])
+  @@index([busId])
+}
+
+// Teachers
+model Teacher {
+  id            String   @id @default(cuid())
+  userId        String?  @unique
+  user          User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  teacherId     String   @unique // e.g., T001
+  name          String
+  subject       String
+  classTeacher  String?
+  phone         String
+  email         String   @unique
+  isClassHead   Boolean  @default(false)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([teacherId])
+  @@index([email])
+}
+
+// Drivers
+model Driver {
+  id          String   @id @default(cuid())
+  userId      String?  @unique
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  driverId    String   @unique
+  name        String
+  phone       String
+  license     String   @unique
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  buses       Bus[]
+
+  @@index([driverId])
+}
+
+// Buses
+model Bus {
+  id              String    @id @default(cuid())
+  busId           String    @unique // e.g., AV01
+  driverName      String
+  driverId        String?
+  route           String
+  currentLat      Float     @default(10.9027)
+  currentLng      Float     @default(76.9015)
+  speed           Int       @default(0)
+  status          BusStatus @default(INACTIVE)
+  lastUpdate      DateTime  @default(now())
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  driver          Driver?   @relation(fields: [driverId], references: [id])
+  students        Student[]
+
+  @@index([busId])
+  @@index([driverId])
+  @@index([status])
+}
+
+enum BusStatus {
+  ACTIVE
+  INACTIVE
+}
+
+// Classes
+model Class {
+  id            String   @id @default(cuid())
+  class         String
+  section       String
+  classTeacher  String
+  studentsCount Int      @default(0)
+  classHead     String
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  timetable     Timetable?
+  announcements Announcement[]
+
+  @@unique([class, section])
+  @@index([class, section])
+}
+
+// Timetable
+model Timetable {
+  id          String   @id @default(cuid())
+  classId     String   @unique
+  class       Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  
+  schedule    Json     // Stores the complete schedule as JSON
+  lastUpdated DateTime @default(now())
+  updatedBy   String
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([classId])
+}
+
+// Attendance
+model Attendance {
+  id        String           @id @default(cuid())
+  studentId String
+  student   Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  date      DateTime
+  status    AttendanceStatus
+  class     String
+  section   String
+  
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@unique([studentId, date])
+  @@index([studentId])
+  @@index([date])
+  @@index([class, section])
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  LEAVE
+}
+
+// Marks
+model Marks {
+  id         String   @id @default(cuid())
+  studentId  String
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  class      String
+  section    String
+  examType   String
+  subjects   Json     // Stores subject-wise marks as JSON
+  total      Int
+  grade      String
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([studentId])
+  @@index([class, section])
+  @@index([examType])
+}
+
+// Announcements
+model Announcement {
+  id        String             @id @default(cuid())
+  title     String
+  content   String             @db.Text
+  priority  AnnouncementPriority @default(NORMAL)
+  target    AnnouncementTarget   @default(ALL)
+  classId   String?
+  class     Class?             @relation(fields: [classId], references: [id], onDelete: SetNull)
+  
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  @@index([priority])
+  @@index([target])
+  @@index([createdAt])
+}
+
+enum AnnouncementPriority {
+  NORMAL
+  IMPORTANT
+  URGENT
+}
+
+enum AnnouncementTarget {
+  ALL
+  STUDENTS
+  TEACHERS
+  PARENTS
+}
+
+// Library Management (Enhanced)
+model Book {
+  id          String   @id @default(cuid())
+  bookId      String   @unique // e.g., B001
+  title       String
+  author      String
+  isbn        String   @unique
+  category    String
+  publisher   String
+  year        Int
+  edition     String?
+  language    String   @default("English")
+  pages       Int?
+  price       Float?
+  quantity    Int      @default(1)
+  available   Int      @default(1)
+  location    String
+  description String?  @db.Text
+  coverImage  String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  borrowedBooks BorrowedBook[]
+
+  @@index([bookId])
+  @@index([isbn])
+  @@index([category])
+  @@index([title])
+  @@index([author])
+}
+
+// Borrowed Books
+model BorrowedBook {
+  id          String   @id @default(cuid())
+  bookId      String
+  book        Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  borrowDate  DateTime @default(now())
+  dueDate     DateTime
+  returnDate  DateTime?
+  status      BorrowStatus @default(BORROWED)
+  fine        Float    @default(0)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([bookId])
+  @@index([studentId])
+  @@index([status])
+  @@index([borrowDate])
+  @@index([dueDate])
+}
+
+enum BorrowStatus {
+  BORROWED
+  RETURNED
+  OVERDUE
+  LOST
+}
+
+// Library Categories
+model BookCategory {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([name])
+}

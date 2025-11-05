@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDatabase } from '@/lib/database';
+import prisma from '@/lib/prisma';
 
 // POST /api/auth/login
 export async function POST(request: NextRequest) {
@@ -14,24 +14,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const db = getDatabase();
-    const user = db.getUserByEmail(email);
+    // Query user from database
+    const user = await prisma.user.findFirst({
+      where: {
+        email: email.toLowerCase(),
+        role: role.toUpperCase(),
+      }
+    });
 
-    if (!user || user.password !== password || user.role !== role) {
+    if (!user) {
       return NextResponse.json(
         { success: false, error: 'Invalid credentials' },
         { status: 401 }
       );
     }
 
-    // In production, use proper JWT tokens
+    // In production, use bcrypt for password hashing
+    // For now, simple password comparison
+    if (user.password !== password) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid credentials' },
+        { status: 401 }
+      );
+    }
+
+    // Remove password from response
     const { password: _, ...userWithoutPassword } = user;
 
     return NextResponse.json({
       success: true,
       data: {
-        user: userWithoutPassword,
-        token: `fake-token-${user.id}` // Replace with real JWT in production
+        user: {
+          ...userWithoutPassword,
+          role: user.role.toLowerCase(), // Convert back to lowercase for frontend
+        },
+        token: `token-${user.id}` // Replace with real JWT in production
       }
     });
   } catch (error) {

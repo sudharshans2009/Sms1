@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDatabase } from '@/lib/database';
+import prisma from '@/lib/prisma';
 
 // GET /api/students
 export async function GET(request: NextRequest) {
@@ -8,15 +8,31 @@ export async function GET(request: NextRequest) {
     const classId = searchParams.get('class');
     const section = searchParams.get('section');
 
-    const db = getDatabase();
+    let students;
 
     if (classId) {
-      const students = db.getStudentsByClass(classId, section || undefined);
-      return NextResponse.json({ success: true, data: students });
+      students = await prisma.student.findMany({
+        where: {
+          class: classId,
+          ...(section && { section }),
+        },
+        orderBy: [
+          { class: 'asc' },
+          { section: 'asc' },
+          { name: 'asc' },
+        ],
+      });
+    } else {
+      students = await prisma.student.findMany({
+        orderBy: [
+          { class: 'asc' },
+          { section: 'asc' },
+          { name: 'asc' },
+        ],
+      });
     }
 
-    const allStudents = db.getAllStudents();
-    return NextResponse.json({ success: true, data: allStudents });
+    return NextResponse.json({ success: true, data: students });
   } catch (error) {
     console.error('Error fetching students:', error);
     return NextResponse.json(
@@ -30,9 +46,46 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const db = getDatabase();
     
-    const student = db.addStudent(body);
+    // Validate required fields
+    if (!body.studentId || !body.name || !body.class || !body.section) {
+      return NextResponse.json(
+        { success: false, error: 'Missing required fields: studentId, name, class, section' },
+        { status: 400 }
+      );
+    }
+
+    // Check if student ID already exists
+    const existing = await prisma.student.findUnique({
+      where: { studentId: body.studentId },
+    });
+
+    if (existing) {
+      return NextResponse.json(
+        { success: false, error: 'Student ID already exists' },
+        { status: 400 }
+      );
+    }
+
+    // Create student
+    const student = await prisma.student.create({
+      data: {
+        studentId: body.studentId,
+        name: body.name,
+        class: body.class,
+        section: body.section,
+        rollNumber: body.rollNumber || null,
+        dateOfBirth: body.dateOfBirth ? new Date(body.dateOfBirth) : null,
+        gender: body.gender || null,
+        parentName: body.parentName || null,
+        parentPhone: body.parentPhone || null,
+        parentEmail: body.parentEmail || null,
+        address: body.address || null,
+        bloodGroup: body.bloodGroup || null,
+        admissionDate: body.admissionDate ? new Date(body.admissionDate) : new Date(),
+      },
+    });
+
     return NextResponse.json({ success: true, data: student });
   } catch (error) {
     console.error('Error adding student:', error);

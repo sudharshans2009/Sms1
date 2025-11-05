@@ -10,6 +10,7 @@ const StudentsModule = dynamic(() => import('@/components/StudentsModule'), { ss
 const BusTrackingModule = dynamic(() => import('@/components/BusTrackingModule'), { ssr: false });
 const ReportsModule = dynamic(() => import('@/components/ReportsModule'), { ssr: false });
 const AnnouncementsModule = dynamic(() => import('@/components/AnnouncementsModule'), { ssr: false });
+const LibraryModuleEnhanced = dynamic(() => import('@/components/LibraryModule'), { ssr: false });
 
 // Placeholder components for other modules
 const TeachersModule = ({ userRole, teachers }: any) => (
@@ -108,44 +109,6 @@ const MarksModule = ({ userRole, students }: any) => (
   </div>
 );
 
-const LibraryModule = ({ userRole, books }: any) => (
-  <div className="space-y-6">
-    <h2 className="text-2xl font-bold">Library Management</h2>
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-      <div className="card bg-blue-50 dark:bg-blue-900">
-        <h3 className="font-semibold">Total Books</h3>
-        <p className="text-3xl font-bold">{books?.reduce((acc: number, b: any) => acc + b.quantity, 0) || 0}</p>
-      </div>
-      <div className="card bg-green-50 dark:bg-green-900">
-        <h3 className="font-semibold">Available</h3>
-        <p className="text-3xl font-bold">{books?.reduce((acc: number, b: any) => acc + b.available, 0) || 0}</p>
-      </div>
-      <div className="card bg-yellow-50 dark:bg-yellow-900">
-        <h3 className="font-semibold">Issued</h3>
-        <p className="text-3xl font-bold">{books?.reduce((acc: number, b: any) => acc + (b.quantity - b.available), 0) || 0}</p>
-      </div>
-      <div className="card bg-red-50 dark:bg-red-900">
-        <h3 className="font-semibold">Categories</h3>
-        <p className="text-3xl font-bold">{new Set(books?.map((b: any) => b.category)).size || 0}</p>
-      </div>
-    </div>
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {books?.map((book: any) => (
-        <div key={book.id} className="card">
-          <h3 className="font-bold text-lg mb-2">{book.title}</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">by {book.author}</p>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">ISBN: {book.isbn}</p>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Category: {book.category}</p>
-          <div className="mt-3 flex justify-between items-center">
-            <span className="text-sm">Available: {book.available}/{book.quantity}</span>
-            <span className="text-xs text-gray-500">{book.location}</span>
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
 const MessagesModule = ({ userRole }: any) => (
   <div className="space-y-6">
     <div className="flex justify-between items-center">
@@ -163,6 +126,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
   const [activePage, setActivePage] = useState('dashboard');
   const [data, setData] = useState<any>({});
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -172,7 +136,21 @@ export default function DashboardPage() {
       setUser(JSON.parse(userData));
       loadDashboardData();
     }
+
+    // Load theme from localStorage
+    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark';
+    if (savedTheme) {
+      setTheme(savedTheme);
+      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    }
   }, [router]);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    document.documentElement.classList.toggle('dark', newTheme === 'dark');
+  };
 
   const loadDashboardData = async () => {
     try {
@@ -182,7 +160,7 @@ export default function DashboardPage() {
         fetch('/api/classes').then(r => r.json()),
         fetch('/api/announcements').then(r => r.json()),
         fetch('/api/buses').then(r => r.json()),
-        fetch('/api/books').then(r => r.json()),
+        fetch('/api/library/books').then(r => r.json()),
       ]);
 
       setData({
@@ -268,6 +246,21 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"
+                aria-label="Toggle theme"
+              >
+                {theme === 'light' ? (
+                  <svg className="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                )}
+              </button>
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{user.role}</p>
@@ -399,7 +392,7 @@ export default function DashboardPage() {
             )}
 
             {activePage === 'library' && (
-              <LibraryModule userRole={user.role} books={data.books} />
+              <LibraryModuleEnhanced userRole={user.role} />
             )}
 
             {activePage === 'announcements' && (

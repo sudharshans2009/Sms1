@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDatabase } from '@/lib/database';
+import prisma from '@/lib/prisma';
 
 // Simulate real-time location updates (for demo purposes)
 // In production, this would come from GPS devices on buses
@@ -10,12 +10,10 @@ function simulateLocationUpdate(bus: any) {
   
   return {
     ...bus,
-    currentLocation: {
-      lat: bus.currentLocation.lat + latChange,
-      lng: bus.currentLocation.lng + lngChange,
-    },
-    speed: bus.status === 'Active' ? Math.floor(Math.random() * 30) + 20 : 0, // 20-50 km/h if active
-    lastUpdate: new Date().toISOString(),
+    currentLat: bus.currentLat + latChange,
+    currentLng: bus.currentLng + lngChange,
+    speed: bus.status === 'ACTIVE' ? Math.floor(Math.random() * 30) + 20 : 0, // 20-50 km/h if active
+    lastUpdate: new Date(),
   };
 }
 
@@ -26,10 +24,12 @@ export async function GET(request: NextRequest) {
     const busId = searchParams.get('id');
     const realtime = searchParams.get('realtime') === 'true';
 
-    const db = getDatabase();
-
     if (busId) {
-      let bus = db.getBus(busId);
+      let bus = await prisma.bus.findUnique({
+        where: { busNumber: busId },
+        include: { driver: true },
+      });
+      
       if (!bus) {
         return NextResponse.json(
           { success: false, error: 'Bus not found' },
@@ -38,19 +38,22 @@ export async function GET(request: NextRequest) {
       }
       
       // Simulate location update for active buses
-      if (realtime && bus.status === 'Active') {
+      if (realtime && bus.status === 'ACTIVE') {
         bus = simulateLocationUpdate(bus);
       }
       
       return NextResponse.json({ success: true, data: bus });
     }
 
-    let buses = db.getAllBuses();
+    let buses = await prisma.bus.findMany({
+      include: { driver: true },
+      orderBy: { busNumber: 'asc' },
+    });
     
     // Simulate location updates for all active buses
     if (realtime) {
       buses = buses.map((bus: any) => 
-        bus.status === 'Active' ? simulateLocationUpdate(bus) : bus
+        bus.status === 'ACTIVE' ? simulateLocationUpdate(bus) : bus
       );
     }
     
@@ -72,7 +75,7 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, currentLocation, speed, status } = body;
+    const { id, currentLat, currentLng, speed, status } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -81,21 +84,18 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const db = getDatabase();
-    const updateData: any = { lastUpdate: new Date().toISOString() };
+    const updateData: any = { lastUpdate: new Date() };
     
-    if (currentLocation) {
+    if (currentLat !== undefined && currentLng !== undefined) {
       // Validate coordinates
-      if (typeof currentLocation.lat !== 'number' || 
-          typeof currentLocation.lng !== 'number' ||
-          currentLocation.lat < -90 || currentLocation.lat > 90 ||
-          currentLocation.lng < -180 || currentLocation.lng > 180) {
+      if (currentLat < -90 || currentLat > 90 || currentLng < -180 || currentLng > 180) {
         return NextResponse.json(
           { success: false, error: 'Invalid coordinates' },
           { status: 400 }
         );
       }
-      updateData.currentLocation = currentLocation;
+      updateData.currentLat = currentLat;
+      updateData.currentLng = currentLng;
     }
     
     if (speed !== undefined) {
@@ -103,17 +103,14 @@ export async function PUT(request: NextRequest) {
     }
     
     if (status) {
-      updateData.status = ['Active', 'Inactive'].includes(status) ? status : 'Inactive';
+      updateData.status = ['ACTIVE', 'INACTIVE', 'MAINTENANCE'].includes(status) ? status : 'INACTIVE';
     }
 
-    const bus = db.updateBus(id, updateData);
-
-    if (!bus) {
-      return NextResponse.json(
-        { success: false, error: 'Bus not found' },
-        { status: 404 }
-      );
-    }
+    const bus = await prisma.bus.update({
+      where: { busNumber: id },
+      data: updateData,
+      include: { driver: true },
+    });
 
     return NextResponse.json({ 
       success: true, 
@@ -133,33 +130,45 @@ export async function PUT(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, driverName, route, students, currentLocation } = body;
+    const { busNumber, route, capacity, driverId, currentLat, currentLng } = body;
 
-    if (!id || !driverName || !route) {
+    if (!busNumber || !route) {
       return NextResponse.json(
-        { success: false, error: 'Bus ID, driver name, and route are required' },
+        { success: false, error: 'Bus number and route are required' },
         { status: 400 }
       );
     }
 
-    const db = getDatabase();
-    
-    const newBus = {
-      id,
-      driverName,
-      route,
-      students: students || 0,
-      currentLocation: currentLocation || { lat: 10.7905, lng: 78.7047 }, // Default to Tiruchirappalli
-      speed: 0,
-      status: 'Inactive',
-      lastUpdate: new Date().toISOString(),
-    };
+    // Check if bus already exists
+    const existing = await prisma.bus.findUnique({
+      where: { busNumber },
+    });
 
-    const bus = db.addBus(newBus);
+    if (existing) {
+      return NextResponse.json(
+        { success: false, error: 'Bus number already exists' },
+        { status: 400 }
+      );
+    }
+
+    const newBus = await prisma.bus.create({
+      data: {
+        busNumber,
+        route,
+        capacity: capacity || null,
+        driverId: driverId || null,
+        currentLat: currentLat || 10.7905,
+        currentLng: currentLng || 78.7047,
+        speed: 0,
+        status: 'INACTIVE',
+        lastUpdate: new Date(),
+      },
+      include: { driver: true },
+    });
 
     return NextResponse.json({ 
       success: true, 
-      data: bus,
+      data: newBus,
       message: 'Bus added successfully',
     }, { status: 201 });
   } catch (error) {
@@ -184,15 +193,9 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const db = getDatabase();
-    const success = db.deleteBus(busId);
-
-    if (!success) {
-      return NextResponse.json(
-        { success: false, error: 'Bus not found' },
-        { status: 404 }
-      );
-    }
+    await prisma.bus.delete({
+      where: { busNumber: busId },
+    });
 
     return NextResponse.json({ 
       success: true, 

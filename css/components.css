@@ -917,3 +917,91 @@
     align-items: center;
     gap: 10px;
 }
+
+/* Attendance List Styles */
+.attendance-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-top: 20px;
+}
+
+.attendance-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid var(--light-color);
+    transition: background 0.2s;
+}
+
+.attendance-row:hover {
+    background: var(--light-color);
+}
+
+.attendance-options {
+    display: flex;
+    gap: 20px;
+}
+
+.attendance-options label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.attendance-options input[type="radio"] {
+    cursor: pointer;
+}
+
+/* Mark Input Styles */
+.mark-input {
+    width: 70px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.mark-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.1);
+}
+
+.total-marks {
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 1.1em;
+}
+
+.grade {
+    font-weight: 700;
+    font-size: 1.1em;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+/* Modal Large Size */
+.modal-content.large {
+    max-width: 1200px;
+    width: 95%;
+}
+
+/* Alert Styles */
+.alert {
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.alert-info {
+    background: rgba(6, 182, 212, 0.1);
+    color: var(--accent-color);
+    border-left: 4px solid var(--accent-color);
+}

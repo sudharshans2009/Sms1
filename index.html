@@ -240,6 +240,61 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Export Data Section -->
+                    <div class="content-card mt-4 animate__animated animate__fadeIn">
+                        <div class="card-header">
+                            <h3 class="card-title">Export Data</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Export Type</label>
+                                <select class="form-control-lg" id="exportTypeSelect" onchange="handleExportTypeChange()">
+                                    <option value="">Select Export Type</option>
+                                    <option value="all_students">All Students Data</option>
+                                    <option value="all_teachers">All Teachers Data</option>
+                                    <option value="class_students">Students by Class</option>
+                                    <option value="section_students">Students by Section</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group" id="exportClassGroup" style="display: none;">
+                                <label class="form-label">Select Class</label>
+                                <select class="form-control-lg" id="exportClassSelect">
+                                    <option value="">Select Class</option>
+                                    <option value="LKG">LKG</option>
+                                    <option value="UKG">UKG</option>
+                                    <option value="1">Class 1</option>
+                                    <option value="2">Class 2</option>
+                                    <option value="3">Class 3</option>
+                                    <option value="4">Class 4</option>
+                                    <option value="5">Class 5</option>
+                                    <option value="6">Class 6</option>
+                                    <option value="7">Class 7</option>
+                                    <option value="8">Class 8</option>
+                                    <option value="9">Class 9</option>
+                                    <option value="10">Class 10</option>
+                                    <option value="11">Class 11</option>
+                                    <option value="12">Class 12</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group" id="exportSectionGroup" style="display: none;">
+                                <label class="form-label">Select Section</label>
+                                <select class="form-control-lg" id="exportSectionSelect">
+                                    <option value="">Select Section</option>
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                    <option value="C">C</option>
+                                    <option value="D">D</option>
+                                </select>
+                            </div>
+                            
+                            <button class="btn btn-success" onclick="exportData()">
+                                <i class="bi bi-download"></i> Export Data
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -350,7 +405,7 @@
                         <div class="tab-content" id="attendance-report">
                             <div class="form-group">
                                 <label class="form-label">Select Class</label>
-                                <select class="form-control-lg" id="reportClassSelect">
+                                <select class="form-control-lg" id="attendanceReportClassSelect">
                                     <option value="">Select Class</option>
                                     <!-- Options will be dynamically generated -->
                                 </select>
@@ -777,79 +832,9 @@
                         </div>
                         
                         <div class="tab-content" id="add-book">
-                            <form id="addBookForm">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="form-label">Book Title</label>
-                                            <input type="text" class="form-control-lg" id="bookTitle" placeholder="Enter book title" required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="form-label">Author</label>
-                                            <input type="text" class="form-control-lg" id="bookAuthor" placeholder="Enter author name" required>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="form-label">ISBN</label>
-                                            <input type="text" class="form-control-lg" id="bookISBN" placeholder="Enter ISBN">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="form-label">Category</label>
-                                            <select class="form-control-lg" id="bookCategory">
-                                                <option value="">Select Category</option>
-                                                <option value="fiction">Fiction</option>
-                                                <option value="non-fiction">Non-Fiction</option>
-                                                <option value="reference">Reference</option>
-                                                <option value="textbook">Textbook</option>
-                                                <option value="magazine">Magazine</option>
-                                                <option value="journal">Journal</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="form-label">Publisher</label>
-                                            <input type="text" class="form-control-lg" id="bookPublisher" placeholder="Enter publisher name">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="form-label">Publication Year</label>
-                                            <input type="number" class="form-control-lg" id="bookYear" placeholder="Enter publication year" min="1900" max="2024">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="form-label">Quantity</label>
-                                            <input type="number" class="form-control-lg" id="bookQuantity" placeholder="Enter quantity" min="1" required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="form-label">Location</label>
-                                            <input type="text" class="form-control-lg" id="bookLocation" placeholder="Enter shelf location">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Description</label>
-                                    <textarea class="form-control-lg" id="bookDescription" placeholder="Enter book description" rows="3"></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <button type="submit" class="btn btn-primary">Add Book</button>
-                                </div>
-                            </form>
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i> To add a new book to the library, please click the "Add Book" button at the top of the page.
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1500,6 +1485,153 @@
         <button class="toast-close" onclick="hideToast()">
             <i class="bi bi-x"></i>
         </button>
+    </div>
+
+    <!-- Mark Attendance Modal -->
+    <div class="modal" id="markAttendanceModal">
+        <div class="modal-content animate__animated animate__fadeInUp">
+            <div class="modal-header">
+                <h3 class="modal-title">Mark Attendance</h3>
+                <button class="modal-close" onclick="closeModal('markAttendanceModal')">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Date</label>
+                    <input type="date" class="form-control-lg" id="attendanceDate" required>
+                </div>
+                <div id="attendanceList" class="attendance-list">
+                    <!-- Student attendance rows will be dynamically generated -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('markAttendanceModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveAttendance()">Save Attendance</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Marks Modal -->
+    <div class="modal" id="addMarksModal">
+        <div class="modal-content large animate__animated animate__fadeInUp">
+            <div class="modal-header">
+                <h3 class="modal-title">Add Marks</h3>
+                <button class="modal-close" onclick="closeModal('addMarksModal')">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label">Class</label>
+                            <select class="form-control-lg" id="modalMarksClass" required>
+                                <option value="">Select Class</option>
+                                <option value="1">Class 1</option>
+                                <option value="2">Class 2</option>
+                                <option value="3">Class 3</option>
+                                <option value="4">Class 4</option>
+                                <option value="5">Class 5</option>
+                                <option value="6">Class 6</option>
+                                <option value="7">Class 7</option>
+                                <option value="8">Class 8</option>
+                                <option value="9">Class 9</option>
+                                <option value="10">Class 10</option>
+                                <option value="11">Class 11</option>
+                                <option value="12">Class 12</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label">Section</label>
+                            <select class="form-control-lg" id="modalMarksSection" required>
+                                <option value="">Select Section</option>
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                                <option value="D">D</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label">Exam Type</label>
+                            <select class="form-control-lg" id="modalExamType" required>
+                                <option value="">Select Exam</option>
+                                <option value="periodic">Periodic Test</option>
+                                <option value="midterm">Mid Term</option>
+                                <option value="term">Term Exam</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="alert alert-info mt-3">
+                    Select class and section above, then use the Marks Management page to enter marks for students.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addMarksModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Timetable Modal -->
+    <div class="modal" id="addTimetableModal">
+        <div class="modal-content animate__animated animate__fadeInUp">
+            <div class="modal-header">
+                <h3 class="modal-title">Add Timetable</h3>
+                <button class="modal-close" onclick="closeModal('addTimetableModal')">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    Timetable management feature allows you to create and manage class schedules. This feature is coming soon!
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeModal('addTimetableModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Report Modal -->
+    <div class="modal" id="addReportModal">
+        <div class="modal-content animate__animated animate__fadeInUp">
+            <div class="modal-header">
+                <h3 class="modal-title">Generate Report</h3>
+                <button class="modal-close" onclick="closeModal('addReportModal')">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Report Type</label>
+                    <select class="form-control-lg" id="reportTypeSelect" required>
+                        <option value="">Select Report Type</option>
+                        <option value="progress">Progress Report</option>
+                        <option value="attendance">Attendance Report</option>
+                        <option value="performance">Performance Report</option>
+                        <option value="conduct">Conduct Report</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Term</label>
+                    <select class="form-control-lg" id="reportTerm" required>
+                        <option value="">Select Term</option>
+                        <option value="1">Term 1</option>
+                        <option value="2">Term 2</option>
+                        <option value="3">Term 3</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addReportModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="generateReport()">Generate</button>
+            </div>
+        </div>
     </div>
 
     <!-- Floating Action Buttons (Admin Only) -->

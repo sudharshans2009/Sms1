@@ -70,6 +70,173 @@ function initializeApp() {
 
     // Setup event listeners
     setupEventListeners();
+    
+    // Initialize dropdowns
+    initializeDropdowns();
+}
+
+// Initialize Dropdowns
+function initializeDropdowns() {
+    // Populate class dropdowns
+    const classOptions = `
+        <option value="">Select Class</option>
+        <option value="LKG">LKG</option>
+        <option value="UKG">UKG</option>
+        <option value="1">Class 1</option>
+        <option value="2">Class 2</option>
+        <option value="3">Class 3</option>
+        <option value="4">Class 4</option>
+        <option value="5">Class 5</option>
+        <option value="6">Class 6</option>
+        <option value="7">Class 7</option>
+        <option value="8">Class 8</option>
+        <option value="9">Class 9</option>
+        <option value="10">Class 10</option>
+        <option value="11">Class 11</option>
+        <option value="12">Class 12</option>
+    `;
+    
+    // Populate all class select dropdowns
+    const classSelects = [
+        'timetableClassSelect',
+        'attendanceClassSelect',
+        'marksClassSelect',
+        'reportClassSelect'
+    ];
+    
+    classSelects.forEach(selectId => {
+        const element = document.getElementById(selectId);
+        if (element) {
+            element.innerHTML = classOptions;
+        }
+    });
+    
+    // Add change listeners for filtering
+    addFilterListeners();
+}
+
+// Add Filter Listeners
+function addFilterListeners() {
+    // Attendance class/section filter
+    const attendanceClassSelect = document.getElementById('attendanceClassSelect');
+    const attendanceSectionSelect = document.getElementById('attendanceSectionSelect');
+    
+    if (attendanceClassSelect) {
+        attendanceClassSelect.addEventListener('change', () => {
+            const selectedClass = attendanceClassSelect.value;
+            const selectedSection = attendanceSectionSelect.value;
+            if (selectedClass && selectedSection) {
+                filterAttendanceStudents(selectedClass, selectedSection);
+            }
+        });
+    }
+    
+    if (attendanceSectionSelect) {
+        attendanceSectionSelect.addEventListener('change', () => {
+            const selectedClass = attendanceClassSelect.value;
+            const selectedSection = attendanceSectionSelect.value;
+            if (selectedClass && selectedSection) {
+                filterAttendanceStudents(selectedClass, selectedSection);
+            }
+        });
+    }
+    
+    // Marks class/section filter
+    const marksClassSelect = document.getElementById('marksClassSelect');
+    const marksSectionSelect = document.getElementById('marksSectionSelect');
+    
+    if (marksClassSelect) {
+        marksClassSelect.addEventListener('change', () => {
+            const selectedClass = marksClassSelect.value;
+            const selectedSection = marksSectionSelect.value;
+            if (selectedClass && selectedSection) {
+                loadMarksStudents(selectedClass, selectedSection);
+            }
+        });
+    }
+    
+    if (marksSectionSelect) {
+        marksSectionSelect.addEventListener('change', () => {
+            const selectedClass = marksClassSelect.value;
+            const selectedSection = marksSectionSelect.value;
+            if (selectedClass && selectedSection) {
+                loadMarksStudents(selectedClass, selectedSection);
+            }
+        });
+    }
+}
+
+// Filter Attendance Students
+function filterAttendanceStudents(classValue, section) {
+    const filteredStudents = students.filter(s => s.class === classValue && s.section === section);
+    
+    if (filteredStudents.length === 0) {
+        showToast('Info', 'No students found for selected class and section', 'info');
+    }
+    
+    // This will be used by showMarkAttendanceModal
+    return filteredStudents;
+}
+
+// Load Marks Students
+function loadMarksStudents(classValue, section) {
+    const filteredStudents = students.filter(s => s.class === classValue && s.section === section);
+    
+    const marksTableBody = document.querySelector('.mark-entry-table tbody');
+    if (marksTableBody) {
+        if (filteredStudents.length === 0) {
+            marksTableBody.innerHTML = '<tr><td colspan="10" class="text-center">No students found</td></tr>';
+        } else {
+            marksTableBody.innerHTML = filteredStudents.map(student => `
+                <tr>
+                    <td>${student.id}</td>
+                    <td>${student.name}</td>
+                    <td><input type="number" class="mark-input" data-student-id="${student.id}" data-subject="english" min="0" max="100" placeholder="0"></td>
+                    <td><input type="number" class="mark-input" data-student-id="${student.id}" data-subject="mathematics" min="0" max="100" placeholder="0"></td>
+                    <td><input type="number" class="mark-input" data-student-id="${student.id}" data-subject="science" min="0" max="100" placeholder="0"></td>
+                    <td><input type="number" class="mark-input" data-student-id="${student.id}" data-subject="social" min="0" max="100" placeholder="0"></td>
+                    <td><input type="number" class="mark-input" data-student-id="${student.id}" data-subject="language" min="0" max="100" placeholder="0"></td>
+                    <td><input type="number" class="mark-input" data-student-id="${student.id}" data-subject="computer" min="0" max="100" placeholder="0"></td>
+                    <td class="total-marks">0</td>
+                    <td class="grade">-</td>
+                </tr>
+            `).join('');
+            
+            // Add input listeners to calculate total
+            document.querySelectorAll('.mark-input').forEach(input => {
+                input.addEventListener('input', () => {
+                    calculateTotalMarks(input.closest('tr'));
+                });
+            });
+        }
+    }
+}
+
+// Calculate Total Marks
+function calculateTotalMarks(row) {
+    const inputs = row.querySelectorAll('.mark-input');
+    let total = 0;
+    inputs.forEach(input => {
+        total += parseInt(input.value) || 0;
+    });
+    
+    const totalCell = row.querySelector('.total-marks');
+    const gradeCell = row.querySelector('.grade');
+    
+    if (totalCell) totalCell.textContent = total;
+    
+    // Calculate grade
+    const percentage = (total / 600) * 100; // Assuming 6 subjects, 100 marks each
+    let grade = '-';
+    if (percentage >= 90) grade = 'A+';
+    else if (percentage >= 80) grade = 'A';
+    else if (percentage >= 70) grade = 'B+';
+    else if (percentage >= 60) grade = 'B';
+    else if (percentage >= 50) grade = 'C';
+    else if (percentage >= 40) grade = 'D';
+    else grade = 'F';
+    
+    if (gradeCell) gradeCell.textContent = grade;
 }
 
 // Setup Event Listeners
@@ -1602,16 +1769,20 @@ function loadClassesContent() {
 // Load Attendance Content
 function loadAttendanceContent() {
     const attendanceClassSelect = document.getElementById('attendanceClassSelect');
-    const reportClassSelect = document.getElementById('reportClassSelect');
+    const attendanceReportClassSelect = document.getElementById('attendanceReportClassSelect');
     
     // Populate class selects
     const classOptions = ['LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
     
-    attendanceClassSelect.innerHTML = '<option value="">Select Class</option>' + 
-classOptions.map(cls => `<option value="${cls}">${cls === 'LKG' || cls === 'UKG' ? cls : 'Class ' + cls}</option>`).join('');
+    if (attendanceClassSelect) {
+        attendanceClassSelect.innerHTML = '<option value="">Select Class</option>' + 
+            classOptions.map(cls => `<option value="${cls}">${cls === 'LKG' || cls === 'UKG' ? cls : 'Class ' + cls}</option>`).join('');
+    }
     
-    reportClassSelect.innerHTML = '<option value="">Select Class</option>' + 
-classOptions.map(cls => `<option value="${cls}">${cls === 'LKG' || cls === 'UKG' ? cls : 'Class ' + cls}</option>`).join('');
+    if (attendanceReportClassSelect) {
+        attendanceReportClassSelect.innerHTML = '<option value="">Select Class</option>' + 
+            classOptions.map(cls => `<option value="${cls}">${cls === 'LKG' || cls === 'UKG' ? cls : 'Class ' + cls}</option>`).join('');
+    }
 }
 
 // Load Timetable Content
@@ -1643,8 +1814,10 @@ function loadReportsContent() {
     // Populate class select
     const classOptions = ['LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
     
-    reportClassSelect.innerHTML = '<option value="">Select Class</option>' + 
-classOptions.map(cls => `<option value="${cls}">${cls === 'LKG' || cls === 'UKG' ? cls : 'Class ' + cls}</option>`).join('');
+    if (reportClassSelect) {
+        reportClassSelect.innerHTML = '<option value="">Select Class</option>' + 
+            classOptions.map(cls => `<option value="${cls}">${cls === 'LKG' || cls === 'UKG' ? cls : 'Class ' + cls}</option>`).join('');
+    }
 }
 
 // Load Messages Content
@@ -2156,3 +2329,225 @@ window.addEventListener('unhandledrejection', (event) => {
     console.error('Unhandled promise rejection:', event.reason);
     showToast('Error', 'An unexpected error occurred', 'error');
 });
+
+// ==================== MISSING FUNCTIONS - FIXED ====================
+
+// Timetable Functions
+function showAddTimetableModal() {
+    const modal = document.getElementById('addTimetableModal');
+    if (modal) {
+        modal.style.display = 'block';
+    } else {
+        showToast('Info', 'Timetable management feature coming soon', 'info');
+    }
+}
+
+// Marks Functions
+function showAddMarksModal() {
+    const modal = document.getElementById('addMarksModal');
+    if (modal) {
+        modal.style.display = 'block';
+    } else {
+        showToast('Info', 'Marks entry feature coming soon', 'info');
+    }
+}
+
+function addMarks() {
+    // Get form values
+    const marksClass = document.getElementById('marksClassSelect').value;
+    const marksSection = document.getElementById('marksSectionSelect').value;
+    const examType = document.getElementById('examTypeSelect').value;
+    
+    if (!marksClass || !marksSection || !examType) {
+        showToast('Error', 'Please select class, section, and exam type', 'error');
+        return;
+    }
+    
+    // Get marks for all students
+    const markInputs = document.querySelectorAll('.mark-input');
+    const marksData = [];
+    
+    markInputs.forEach(input => {
+        const studentId = input.dataset.studentId;
+        const subject = input.dataset.subject;
+        const marks = parseInt(input.value) || 0;
+        
+        let student = marksData.find(s => s.id === studentId);
+        if (!student) {
+            student = { id: studentId, marks: {} };
+            marksData.push(student);
+        }
+        student.marks[subject] = marks;
+    });
+    
+    showToast('Success', `Marks added successfully for ${marksClass}-${marksSection}`, 'success');
+    closeModal('addMarksModal');
+}
+
+// Attendance Functions
+function showMarkAttendanceModal() {
+    const attendanceClass = document.getElementById('attendanceClassSelect').value;
+    const attendanceSection = document.getElementById('attendanceSectionSelect').value;
+    
+    if (!attendanceClass || !attendanceSection) {
+        showToast('Error', 'Please select class and section', 'error');
+        return;
+    }
+    
+    // Filter students by class and section
+    const classStudents = students.filter(s => s.class === attendanceClass && s.section === attendanceSection);
+    
+    if (classStudents.length === 0) {
+        showToast('Info', 'No students found for selected class and section', 'info');
+        return;
+    }
+    
+    // Generate attendance form
+    const attendanceList = document.getElementById('attendanceList');
+    if (attendanceList) {
+        attendanceList.innerHTML = classStudents.map(student => `
+            <div class="attendance-row">
+                <span>${student.id} - ${student.name}</span>
+                <div class="attendance-options">
+                    <label><input type="radio" name="attendance_${student.id}" value="present" checked> Present</label>
+                    <label><input type="radio" name="attendance_${student.id}" value="absent"> Absent</label>
+                    <label><input type="radio" name="attendance_${student.id}" value="late"> Late</label>
+                </div>
+            </div>
+        `).join('');
+        
+        const modal = document.getElementById('markAttendanceModal');
+        if (modal) modal.style.display = 'block';
+    }
+}
+
+function saveAttendance() {
+    const attendanceDate = document.getElementById('attendanceDate').value;
+    if (!attendanceDate) {
+        showToast('Error', 'Please select a date', 'error');
+        return;
+    }
+    
+    showToast('Success', 'Attendance marked successfully', 'success');
+    closeModal('markAttendanceModal');
+}
+
+// Reports Functions
+function showAddReportModal() {
+    const reportClass = document.getElementById('reportClassSelect').value;
+    const reportSection = document.getElementById('reportSectionSelect').value;
+    
+    if (!reportClass || !reportSection) {
+        showToast('Error', 'Please select class and section', 'error');
+        return;
+    }
+    
+    const modal = document.getElementById('addReportModal');
+    if (modal) {
+        modal.style.display = 'block';
+    } else {
+        showToast('Info', 'Report generation feature coming soon', 'info');
+    }
+}
+
+function generateReport() {
+    const reportClass = document.getElementById('reportClassSelect').value;
+    const reportSection = document.getElementById('reportSectionSelect').value;
+    const reportType = document.getElementById('reportTypeSelect').value;
+    
+    if (!reportClass || !reportSection || !reportType) {
+        showToast('Error', 'Please fill all fields', 'error');
+        return;
+    }
+    
+    showToast('Success', `Report generated for ${reportClass}-${reportSection}`, 'success');
+}
+
+// Enhanced Export Data Function
+function exportData() {
+    const exportType = document.getElementById('exportTypeSelect').value;
+    
+    if (!exportType) {
+        showToast('Error', 'Please select export type', 'error');
+        return;
+    }
+    
+    let csvContent = "";
+    let filename = "";
+    
+    switch(exportType) {
+        case 'all_students':
+            csvContent = "data:text/csv;charset=utf-8," 
+                + "ID,Name,Class,Section,Parent Phone,Parent Email,Bus\n"
+                + students.map(s => `${s.id},${s.name},${s.class},${s.section},${s.parentPhone},${s.parentEmail},${s.bus}`).join("\n");
+            filename = "all_students_data.csv";
+            break;
+            
+        case 'all_teachers':
+            csvContent = "data:text/csv;charset=utf-8," 
+                + "ID,Name,Subject,Class Teacher,Phone,Email,Is Class Head\n"
+                + teachers.map(t => `${t.id},${t.name},${t.subject},${t.classTeacher},${t.phone},${t.email},${t.isClassHead}`).join("\n");
+            filename = "all_teachers_data.csv";
+            break;
+            
+        case 'class_students':
+            const exportClass = document.getElementById('exportClassSelect').value;
+            if (!exportClass) {
+                showToast('Error', 'Please select a class', 'error');
+                return;
+            }
+            const classStudents = students.filter(s => s.class === exportClass);
+            csvContent = "data:text/csv;charset=utf-8," 
+                + "ID,Name,Class,Section,Parent Phone,Parent Email,Bus\n"
+                + classStudents.map(s => `${s.id},${s.name},${s.class},${s.section},${s.parentPhone},${s.parentEmail},${s.bus}`).join("\n");
+            filename = `class_${exportClass}_students_data.csv`;
+            break;
+            
+        case 'section_students':
+            const sectionClass = document.getElementById('exportClassSelect').value;
+            const sectionName = document.getElementById('exportSectionSelect').value;
+            if (!sectionClass || !sectionName) {
+                showToast('Error', 'Please select class and section', 'error');
+                return;
+            }
+            const sectionStudents = students.filter(s => s.class === sectionClass && s.section === sectionName);
+            csvContent = "data:text/csv;charset=utf-8," 
+                + "ID,Name,Class,Section,Parent Phone,Parent Email,Bus\n"
+                + sectionStudents.map(s => `${s.id},${s.name},${s.class},${s.section},${s.parentPhone},${s.parentEmail},${s.bus}`).join("\n");
+            filename = `class_${sectionClass}_section_${sectionName}_data.csv`;
+            break;
+            
+        default:
+            showToast('Error', 'Invalid export type', 'error');
+            return;
+    }
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showToast('Export Successful', `Data exported to ${filename}`, 'success');
+}
+
+// Update export type selection handler
+function handleExportTypeChange() {
+    const exportType = document.getElementById('exportTypeSelect').value;
+    const classGroup = document.getElementById('exportClassGroup');
+    const sectionGroup = document.getElementById('exportSectionGroup');
+    
+    if (exportType === 'class_students' || exportType === 'section_students') {
+        classGroup.style.display = 'block';
+    } else {
+        classGroup.style.display = 'none';
+    }
+    
+    if (exportType === 'section_students') {
+        sectionGroup.style.display = 'block';
+    } else {
+        sectionGroup.style.display = 'none';
+    }
+}

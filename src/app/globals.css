@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --amrita-orange: #FF6B35;
+  --amrita-blue: #4A6CF7;
+  --amrita-purple: #6C5CE7;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --text-primary: #1a1a1a;
+  --text-secondary: #6c757d;
+  --border-color: #dee2e6;
+}
+
+.dark {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --border-color: #404040;
+}
+
+body {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-amrita-orange hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow-md;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors;
+  }
+
+  .btn-danger {
+    @apply bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors;
+  }
+
+  .card {
+    @apply bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transition-shadow hover:shadow-lg;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-amrita-orange dark:bg-gray-700 transition-all;
+  }
+}
+
+/* Timetable specific styles */
+.timetable-cell {
+  @apply border border-gray-300 dark:border-gray-600 p-3 text-center;
+}
+
+.timetable-cell-editable {
+  @apply cursor-pointer hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors;
+}
+
+.timetable-header {
+  @apply bg-gradient-to-r from-amrita-orange to-amrita-blue text-white font-semibold;
+}

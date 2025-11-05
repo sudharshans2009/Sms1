@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPS Simulator - Amrita Bus Tracking</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #FF6B35;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #495057;
+            font-weight: 600;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #FF6B35;
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+        }
+        
+        .button {
+            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 107, 53, 0.3);
+        }
+        
+        .button:active {
+            transform: translateY(0);
+        }
+        
+        .button-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+            display: block;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+            display: block;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            border: 2px solid #17a2b8;
+            color: #0c5460;
+            display: block;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .info-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .info-box h3 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+        
+        .info-box p {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        @media (max-width: 600px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚌 GPS Simulator</h1>
+        <p class="subtitle">Test GPS location updates for Amrita Bus Tracking System</p>
+        
+        <div class="card">
+            <h2 style="margin-bottom: 20px; color: #495057;">📍 Current Status</h2>
+            <div class="grid">
+                <div class="info-box">
+                    <h3 id="lat-display">0.0000</h3>
+                    <p>Latitude</p>
+                </div>
+                <div class="info-box">
+                    <h3 id="lng-display">0.0000</h3>
+                    <p>Longitude</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2 style="margin-bottom: 20px; color: #495057;">🎮 Simulator Controls</h2>
+            
+            <div class="form-group">
+                <label for="busId">Bus ID</label>
+                <select id="busId">
+                    <option value="AV01">AV01 - Coimbatore Route</option>
+                    <option value="AV02">AV02 - Palakkad Route</option>
+                    <option value="P1">P1 - Coimbatore Route</option>
+                    <option value="P2">P2 - Palakkad Route</option>
+                </select>
+            </div>
+            
+            <div class="grid">
+                <div class="form-group">
+                    <label for="latitude">Latitude</label>
+                    <input type="number" id="latitude" step="0.000001" value="10.902700">
+                </div>
+                
+                <div class="form-group">
+                    <label for="longitude">Longitude</label>
+                    <input type="number" id="longitude" step="0.000001" value="76.901500">
+                </div>
+            </div>
+            
+            <div class="grid">
+                <div class="form-group">
+                    <label for="speed">Speed (km/h)</label>
+                    <input type="number" id="speed" min="0" max="120" value="40">
+                </div>
+                
+                <div class="form-group">
+                    <label for="status">Status</label>
+                    <select id="status">
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="apiUrl">API Endpoint</label>
+                <input type="text" id="apiUrl" value="http://localhost:3000/api/buses">
+            </div>
+            
+            <button class="button" onclick="sendSingleUpdate()">
+                📡 Send Single Update
+            </button>
+            
+            <button class="button button-secondary" onclick="toggleAutoUpdate()">
+                <span id="auto-btn-text">▶️ Start Auto Update (Every 5s)</span>
+            </button>
+            
+            <button class="button" onclick="getCurrentLocation()" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                📍 Use My Current Location
+            </button>
+        </div>
+        
+        <div class="card">
+            <h2 style="margin-bottom: 15px; color: #495057;">📋 Quick Locations</h2>
+            <div class="grid" style="grid-template-columns: 1fr 1fr;">
+                <button class="button" onclick="setLocation(10.9027, 76.9015)" style="background: #6c757d;">
+                    🏫 Amrita Campus
+                </button>
+                <button class="button" onclick="setLocation(11.0168, 76.9558)" style="background: #6c757d;">
+                    🏙️ Coimbatore City
+                </button>
+                <button class="button" onclick="setLocation(10.7827, 76.6515)" style="background: #6c757d;">
+                    🌆 Palakkad City
+                </button>
+                <button class="button" onclick="randomMove()" style="background: #6c757d;">
+                    🎲 Random Move
+                </button>
+            </div>
+        </div>
+        
+        <div id="status-message" class="status"></div>
+    </div>
+
+    <script>
+        let autoUpdateInterval = null;
+        let isAutoUpdating = false;
+
+        function updateDisplay() {
+            document.getElementById('lat-display').textContent = 
+                parseFloat(document.getElementById('latitude').value).toFixed(6);
+            document.getElementById('lng-display').textContent = 
+                parseFloat(document.getElementById('longitude').value).toFixed(6);
+        }
+
+        // Update display when inputs change
+        document.getElementById('latitude').addEventListener('input', updateDisplay);
+        document.getElementById('longitude').addEventListener('input', updateDisplay);
+
+        async function sendSingleUpdate() {
+            const busId = document.getElementById('busId').value;
+            const lat = parseFloat(document.getElementById('latitude').value);
+            const lng = parseFloat(document.getElementById('longitude').value);
+            const speed = parseInt(document.getElementById('speed').value);
+            const status = document.getElementById('status').value;
+            const apiUrl = document.getElementById('apiUrl').value;
+
+            const data = {
+                id: busId,
+                currentLocation: { lat, lng },
+                speed: speed,
+                status: status
+            };
+
+            showStatus('Sending update...', 'info');
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showStatus(`✅ Successfully updated ${busId} location!`, 'success');
+                } else {
+                    showStatus(`❌ Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`❌ Network Error: ${error.message}`, 'error');
+            }
+        }
+
+        function toggleAutoUpdate() {
+            if (isAutoUpdating) {
+                clearInterval(autoUpdateInterval);
+                isAutoUpdating = false;
+                document.getElementById('auto-btn-text').textContent = '▶️ Start Auto Update (Every 5s)';
+                showStatus('⏸️ Auto-update stopped', 'info');
+            } else {
+                autoUpdateInterval = setInterval(() => {
+                    randomMove();
+                    sendSingleUpdate();
+                }, 5000);
+                isAutoUpdating = true;
+                document.getElementById('auto-btn-text').textContent = '⏸️ Stop Auto Update';
+                showStatus('▶️ Auto-update started! Location will update every 5 seconds.', 'success');
+            }
+        }
+
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                showStatus('📍 Getting your location...', 'info');
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        setLocation(position.coords.latitude, position.coords.longitude);
+                        showStatus('✅ Location updated to your current position!', 'success');
+                    },
+                    (error) => {
+                        showStatus(`❌ Error getting location: ${error.message}`, 'error');
+                    }
+                );
+            } else {
+                showStatus('❌ Geolocation is not supported by your browser', 'error');
+            }
+        }
+
+        function setLocation(lat, lng) {
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lng;
+            updateDisplay();
+        }
+
+        function randomMove() {
+            const lat = parseFloat(document.getElementById('latitude').value);
+            const lng = parseFloat(document.getElementById('longitude').value);
+            
+            // Move by ~100-200 meters randomly
+            const newLat = lat + (Math.random() - 0.5) * 0.002;
+            const newLng = lng + (Math.random() - 0.5) * 0.002;
+            
+            setLocation(newLat, newLng);
+            
+            // Random speed between 20-60 km/h if active
+            if (document.getElementById('status').value === 'Active') {
+                document.getElementById('speed').value = Math.floor(Math.random() * 40) + 20;
+            }
+        }
+
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('status-message');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+            
+            if (type === 'success' || type === 'error') {
+                setTimeout(() => {
+                    statusEl.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Initialize display
+        updateDisplay();
+    </script>
+</body>
+</html>

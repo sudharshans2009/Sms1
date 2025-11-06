@@ -82,7 +82,6 @@ export async function POST(request: NextRequest) {
         parentEmail: body.parentEmail || null,
         address: body.address || null,
         bloodGroup: body.bloodGroup || null,
-        admissionDate: body.admissionDate ? new Date(body.admissionDate) : new Date(),
       },
     });
 

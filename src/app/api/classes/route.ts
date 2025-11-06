@@ -7,21 +7,24 @@ export async function GET(request: NextRequest) {
     const classes = await prisma.class.findMany({
       include: {
         teacher: true,
-        _count: {
-          select: { students: true },
-        },
       },
       orderBy: [
-        { name: 'asc' },
+        { class: 'asc' },
         { section: 'asc' },
       ],
     });
 
     // Format response to match expected structure
     const formattedClasses = classes.map((cls: any) => ({
-      ...cls,
-      studentsCount: cls._count.students,
-      classTeacher: cls.teacher?.name || null,
+      id: cls.id,
+      name: cls.class,
+      section: cls.section,
+      class: cls.class,
+      classTeacher: cls.teacher,
+      room: cls.room,
+      capacity: cls.capacity,
+      students: [], // Would need to query separately if needed
+      studentsCount: cls.studentsCount || 0,
     }));
     
     return NextResponse.json({ success: true, data: formattedClasses });
@@ -50,7 +53,7 @@ export async function POST(request: NextRequest) {
     // Check if class already exists
     const existing = await prisma.class.findFirst({
       where: {
-        name: body.name,
+        class: body.name,
         section: body.section,
       },
     });
@@ -65,8 +68,10 @@ export async function POST(request: NextRequest) {
     // Create class
     const classData = await prisma.class.create({
       data: {
-        name: body.name,
+        class: body.name,
         section: body.section,
+        classTeacher: body.classTeacher || 'TBD',
+        classHead: body.classHead || 'TBD',
         teacherId: body.teacherId || null,
         room: body.room || null,
         capacity: body.capacity || null,

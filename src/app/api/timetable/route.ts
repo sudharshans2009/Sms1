@@ -1,23 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDatabase } from '@/lib/database';
+import prisma from '@/lib/prisma';
 
 // GET /api/timetable?class=5&section=A
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const classId = searchParams.get('class');
+    const classParam = searchParams.get('class');
     const section = searchParams.get('section');
 
-    const db = getDatabase();
-
-    if (!classId || !section) {
+    if (!classParam || !section) {
       // Return all timetables
-      const allTimetables = db.getAllTimetables();
+      const allTimetables = await prisma.timetable.findMany({
+        include: {
+          class: true,
+        },
+        orderBy: {
+          updatedAt: 'desc',
+        },
+      });
       return NextResponse.json({ success: true, data: allTimetables });
     }
 
+    // Find the class first
+    const classRecord = await prisma.class.findUnique({
+      where: {
+        class_section: {
+          class: classParam,
+          section: section,
+        },
+      },
+    });
+
+    if (!classRecord) {
+      return NextResponse.json(
+        { success: false, error: 'Class not found' },
+        { status: 404 }
+      );
+    }
+
     // Return specific timetable
-    const timetable = db.getTimetable(classId, section);
+    const timetable = await prisma.timetable.findUnique({
+      where: { classId: classRecord.id },
+      include: {
+        class: true,
+      },
+    });
     
     if (!timetable) {
       return NextResponse.json(
@@ -40,17 +67,50 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { class: classId, section, schedule, updatedBy } = body;
+    const { class: classParam, section, schedule, updatedBy } = body;
 
-    if (!classId || !section || !schedule) {
+    if (!classParam || !section || !schedule) {
       return NextResponse.json(
         { success: false, error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    const db = getDatabase();
-    const timetable = db.updateTimetable(classId, section, schedule, updatedBy || 'admin');
+    // Find or create class
+    const classRecord = await prisma.class.upsert({
+      where: {
+        class_section: {
+          class: classParam,
+          section: section,
+        },
+      },
+      update: {},
+      create: {
+        class: classParam,
+        section: section,
+        classTeacher: updatedBy || 'Admin',
+        classHead: updatedBy || 'Admin',
+      },
+    });
+
+    // Create or update timetable
+    const timetable = await prisma.timetable.upsert({
+      where: { classId: classRecord.id },
+      update: {
+        schedule,
+        lastUpdated: new Date(),
+        updatedBy: updatedBy || 'admin',
+      },
+      create: {
+        classId: classRecord.id,
+        schedule,
+        lastUpdated: new Date(),
+        updatedBy: updatedBy || 'admin',
+      },
+      include: {
+        class: true,
+      },
+    });
 
     return NextResponse.json({ success: true, data: timetable });
   } catch (error) {
@@ -66,17 +126,50 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { class: classId, section, schedule, updatedBy } = body;
+    const { class: classParam, section, schedule, updatedBy } = body;
 
-    if (!classId || !section || !schedule) {
+    if (!classParam || !section || !schedule) {
       return NextResponse.json(
         { success: false, error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    const db = getDatabase();
-    const timetable = db.updateTimetable(classId, section, schedule, updatedBy || 'admin');
+    // Find class
+    const classRecord = await prisma.class.findUnique({
+      where: {
+        class_section: {
+          class: classParam,
+          section: section,
+        },
+      },
+    });
+
+    if (!classRecord) {
+      return NextResponse.json(
+        { success: false, error: 'Class not found' },
+        { status: 404 }
+      );
+    }
+
+    // Update timetable
+    const timetable = await prisma.timetable.upsert({
+      where: { classId: classRecord.id },
+      update: {
+        schedule,
+        lastUpdated: new Date(),
+        updatedBy: updatedBy || 'admin',
+      },
+      create: {
+        classId: classRecord.id,
+        schedule,
+        lastUpdated: new Date(),
+        updatedBy: updatedBy || 'admin',
+      },
+      include: {
+        class: true,
+      },
+    });
 
     return NextResponse.json({ success: true, data: timetable });
   } catch (error) {

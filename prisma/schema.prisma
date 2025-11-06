@@ -39,22 +39,28 @@ enum Role {
 
 // Students
 model Student {
-  id           String   @id @default(cuid())
-  userId       String?  @unique
-  user         User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String    @id @default(cuid())
+  userId       String?   @unique
+  user         User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  studentId    String   @unique // e.g., AV001
+  studentId    String    @unique // e.g., AV001
   name         String
   class        String
   section      String
+  rollNumber   String?
+  dateOfBirth  DateTime?
+  gender       String?
+  parentName   String?
   parentPhone  String
   parentEmail  String
+  address      String?
+  bloodGroup   String?
   studentPhone String?
   studentEmail String?
   busId        String?
   
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   // Relations
   bus          Bus?          @relation(fields: [busId], references: [id])
@@ -75,14 +81,19 @@ model Teacher {
   
   teacherId     String   @unique // e.g., T001
   name          String
-  subject       String
-  classTeacher  String?
-  phone         String
-  email         String   @unique
-  isClassHead   Boolean  @default(false)
+  subject       String?
+  qualification String?
+  experience    String?
+  phone         String?
+  email         String?  @unique
+  address       String?
+  joiningDate   DateTime?
   
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  
+  // Relations
+  classes       Class[]
 
   @@index([teacherId])
   @@index([email])
@@ -144,6 +155,9 @@ model Class {
   class         String
   section       String
   classTeacher  String
+  teacherId     String?
+  room          String?
+  capacity      Int?
   studentsCount Int      @default(0)
   classHead     String
   
@@ -151,11 +165,13 @@ model Class {
   updatedAt     DateTime @updatedAt
 
   // Relations
+  teacher       Teacher?  @relation(fields: [teacherId], references: [id], onDelete: SetNull)
   timetable     Timetable?
   announcements Announcement[]
 
   @@unique([class, section])
   @@index([class, section])
+  @@index([teacherId])
 }
 
 // Timetable

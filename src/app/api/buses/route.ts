@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     if (busId) {
       let bus = await prisma.bus.findUnique({
-        where: { busNumber: busId },
+        where: { busId: busId },
         include: { driver: true },
       });
       
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
 
     let buses = await prisma.bus.findMany({
       include: { driver: true },
-      orderBy: { busNumber: 'asc' },
+      orderBy: { busId: 'asc' },
     });
     
     // Simulate location updates for all active buses
@@ -107,7 +107,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const bus = await prisma.bus.update({
-      where: { busNumber: id },
+      where: { busId: id },
       data: updateData,
       include: { driver: true },
     });
@@ -130,35 +130,35 @@ export async function PUT(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { busNumber, route, capacity, driverId, currentLat, currentLng } = body;
+    const { busId, driverName, route, driverId, currentLat, currentLng } = body;
 
-    if (!busNumber || !route) {
+    if (!busId || !driverName || !route) {
       return NextResponse.json(
-        { success: false, error: 'Bus number and route are required' },
+        { success: false, error: 'Bus ID, driver name, and route are required' },
         { status: 400 }
       );
     }
 
     // Check if bus already exists
     const existing = await prisma.bus.findUnique({
-      where: { busNumber },
+      where: { busId },
     });
 
     if (existing) {
       return NextResponse.json(
-        { success: false, error: 'Bus number already exists' },
+        { success: false, error: 'Bus ID already exists' },
         { status: 400 }
       );
     }
 
     const newBus = await prisma.bus.create({
       data: {
-        busNumber,
+        busId,
+        driverName,
         route,
-        capacity: capacity || null,
         driverId: driverId || null,
-        currentLat: currentLat || 10.7905,
-        currentLng: currentLng || 78.7047,
+        currentLat: currentLat || 10.9027,
+        currentLng: currentLng || 76.9015,
         speed: 0,
         status: 'INACTIVE',
         lastUpdate: new Date(),
@@ -194,7 +194,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     await prisma.bus.delete({
-      where: { busNumber: busId },
+      where: { busId: busId },
     });
 
     return NextResponse.json({ 

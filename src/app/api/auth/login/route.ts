@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import bcrypt from 'bcryptjs';
 
 // Configure for Vercel serverless
 export const dynamic = 'force-dynamic';
@@ -12,19 +13,24 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email, password, role } = body;
 
-    if (!email || !password || !role) {
+    if (!email || !password) {
       return NextResponse.json(
         { success: false, error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    // Query user from database
+    // Query user from database (with or without role filter)
+    const whereClause: any = {
+      email: email.toLowerCase(),
+    };
+    
+    if (role) {
+      whereClause.role = role.toUpperCase();
+    }
+
     const user = await prisma.user.findFirst({
-      where: {
-        email: email.toLowerCase(),
-        role: role.toUpperCase(),
-      }
+      where: whereClause
     });
 
     if (!user) {
@@ -34,9 +40,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // In production, use bcrypt for password hashing
-    // For now, simple password comparison
-    if (user.password !== password) {
+    // Compare password with bcrypt
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    
+    if (!passwordMatch) {
       return NextResponse.json(
         { success: false, error: 'Invalid credentials' },
         { status: 401 }

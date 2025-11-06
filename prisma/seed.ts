@@ -1,8 +1,15 @@
 const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('🌱 Starting database seed...');
+
+  // Hash passwords
+  const hashedAdminPassword = await bcrypt.hash('admin123', 10);
+  const hashedTeacherPassword = await bcrypt.hash('teacher123', 10);
+  const hashedStudentPassword = await bcrypt.hash('student123', 10);
+  const hashedDriverPassword = await bcrypt.hash('driver123', 10);
 
   // Create Users
   console.log('Creating users...');
@@ -11,7 +18,7 @@ async function main() {
     update: {},
     create: {
       email: 'admin@amrita.edu',
-      password: 'admin123', // In production, use bcrypt
+      password: hashedAdminPassword,
       name: 'Admin User',
       role: 'ADMIN',
     },
@@ -22,7 +29,7 @@ async function main() {
     update: {},
     create: {
       email: 'teacher@amrita.edu',
-      password: 'teacher123',
+      password: hashedTeacherPassword,
       name: 'Teacher User',
       role: 'TEACHER',
     },
@@ -33,7 +40,7 @@ async function main() {
     update: {},
     create: {
       email: 'student@amrita.edu',
-      password: 'student123',
+      password: hashedStudentPassword,
       name: 'Student User',
       role: 'STUDENT',
     },
@@ -44,7 +51,7 @@ async function main() {
     update: {},
     create: {
       email: 'driver@amrita.edu',
-      password: 'driver123',
+      password: hashedDriverPassword,
       name: 'Driver User',
       role: 'DRIVER',
     },

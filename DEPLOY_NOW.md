@@ -47,7 +47,7 @@
 - **Environments:** Check ✓ Production only
 - Click **Save**
 
-### Variable 5:
+### Variable 5: 
 - **Key:** `JWT_SECRET`
 - **Value:** `amrita-vidyalayam-super-secret-key-2025-production`
 - **Environments:** Check ✓ Production, ✓ Preview, ✓ Development
@@ -57,7 +57,7 @@
 - **Key:** `NEXT_PUBLIC_APP_URL`
 - **Value:** `https://sms1-f4f3.vercel.app`
 - **Environments:** Check ✓ Production, ✓ Preview, ✓ Development
-- Click **Save**
+- Click ** Save**
 
 ---
 

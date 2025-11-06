@@ -1,0 +1,4 @@
+POSTGRES_PRISMA_URL=postgresql://neondb_owner:npg_BZzGuI2nmyM7@ep-red-cherry-a1qwqxar-pooler.ap-southeast-1.aws.neon.tech/neondb?connect_timeout=15&sslmode=require
+POSTGRES_URL_NON_POOLING=postgresql://neondb_owner:npg_BZzGuI2nmyM7@ep-red-cherry-a1qwqxar.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
+POSTGRES_URL=postgresql://neondb_owner:npg_BZzGuI2nmyM7@ep-red-cherry-a1qwqxar-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
+DATABASE_URL=postgresql://neondb_owner:npg_BZzGuI2nmyM7@ep-red-cherry-a1qwqxar-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require

@@ -7,47 +7,15 @@ import dynamic from 'next/dynamic';
 // Dynamic imports for better performance
 const TimetableComponent = dynamic(() => import('@/components/TimetableComponent'), { ssr: false });
 const StudentsModule = dynamic(() => import('@/components/StudentsModule'), { ssr: false });
+const TeachersModule = dynamic(() => import('@/components/TeachersModule'), { ssr: false });
+const ClassesModule = dynamic(() => import('@/components/ClassesModule'), { ssr: false });
 const BusTrackingModule = dynamic(() => import('@/components/BusTrackingModule'), { ssr: false });
 const ReportsModule = dynamic(() => import('@/components/ReportsModule'), { ssr: false });
 const AnnouncementsModule = dynamic(() => import('@/components/AnnouncementsModule'), { ssr: false });
 const LibraryModuleEnhanced = dynamic(() => import('@/components/LibraryModule'), { ssr: false });
 
-// Placeholder components for other modules
-const TeachersModule = ({ userRole, teachers }: any) => (
-  <div className="space-y-6">
-    <h2 className="text-2xl font-bold">Teachers Management</h2>
-    <div className="card">
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50 dark:bg-gray-700">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase">ID</th>
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase">Subject</th>
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase">Class Teacher</th>
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase">Phone</th>
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase">Email</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-            {teachers?.map((teacher: any) => (
-              <tr key={teacher.id}>
-                <td className="px-6 py-4">{teacher.id}</td>
-                <td className="px-6 py-4 font-medium">{teacher.name}</td>
-                <td className="px-6 py-4">{teacher.subject}</td>
-                <td className="px-6 py-4">{teacher.classTeacher}</td>
-                <td className="px-6 py-4">{teacher.phone}</td>
-                <td className="px-6 py-4">{teacher.email}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-);
-
-const ClassesModule = ({ userRole, classes }: any) => (
+// Placeholder component (no longer needed but keeping for reference)
+const PlaceholderModule = ({ userRole, classes }: any) => (
   <div className="space-y-6">
     <h2 className="text-2xl font-bold">Classes Management</h2>
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -368,11 +336,11 @@ export default function DashboardPage() {
             )}
 
             {activePage === 'teachers' && (
-              <TeachersModule userRole={user.role} teachers={data.teachers} />
+              <TeachersModule userRole={user.role} />
             )}
 
             {activePage === 'classes' && (
-              <ClassesModule userRole={user.role} classes={data.classes} />
+              <ClassesModule userRole={user.role} />
             )}
 
             {activePage === 'attendance' && (

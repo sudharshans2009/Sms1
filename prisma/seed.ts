@@ -7,44 +7,44 @@ async function main() {
   // Create Users
   console.log('Creating users...');
   const adminUser = await prisma.user.upsert({
-    where: { email: 'admin@123' },
+    where: { email: 'admin@amrita.edu' },
     update: {},
     create: {
-      email: 'admin@123',
-      password: 'admin', // In production, use bcrypt
+      email: 'admin@amrita.edu',
+      password: 'admin123', // In production, use bcrypt
       name: 'Admin User',
       role: 'ADMIN',
     },
   });
 
   const teacherUser = await prisma.user.upsert({
-    where: { email: 'teacher@123' },
+    where: { email: 'teacher@amrita.edu' },
     update: {},
     create: {
-      email: 'teacher@123',
-      password: 'teacher',
+      email: 'teacher@amrita.edu',
+      password: 'teacher123',
       name: 'Teacher User',
       role: 'TEACHER',
     },
   });
 
   const studentUser = await prisma.user.upsert({
-    where: { email: 'student@123' },
+    where: { email: 'student@amrita.edu' },
     update: {},
     create: {
-      email: 'student@123',
-      password: 'student',
+      email: 'student@amrita.edu',
+      password: 'student123',
       name: 'Student User',
       role: 'STUDENT',
     },
   });
 
   const driverUser = await prisma.user.upsert({
-    where: { email: 'driver@123' },
+    where: { email: 'driver@amrita.edu' },
     update: {},
     create: {
-      email: 'driver@123',
-      password: 'driver',
+      email: 'driver@amrita.edu',
+      password: 'driver123',
       name: 'Driver User',
       role: 'DRIVER',
     },

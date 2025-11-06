@@ -97,16 +97,16 @@ export default function DashboardPage() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (!userData) {
-      router.push('/login');
-    } else {
-      setUser(JSON.parse(userData));
-      loadDashboardData();
-    }
-
-    // Load theme from localStorage
     if (typeof window !== 'undefined') {
+      const userData = localStorage.getItem('user');
+      if (!userData) {
+        router.push('/');
+      } else {
+        setUser(JSON.parse(userData));
+        loadDashboardData();
+      }
+
+      // Load theme from localStorage
       const savedTheme = localStorage.getItem('theme') as 'light' | 'dark';
       if (savedTheme) {
         setTheme(savedTheme);
@@ -151,9 +151,11 @@ export default function DashboardPage() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    router.push('/login');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+    }
+    router.push('/');
   };
 
   if (!user) {

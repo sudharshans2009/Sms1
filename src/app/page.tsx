@@ -63,20 +63,27 @@ export default function Home() {
     setLoading(true);
 
     try {
+      console.log('Attempting login with:', { email, role: selectedRole });
+      
       const response = await axios.post('/api/auth/login', {
         email,
         password,
         role: selectedRole
       });
 
+      console.log('Login response:', response.data);
+
       if (response.data.success) {
-        localStorage.setItem('user', JSON.stringify(response.data.data.user));
-        localStorage.setItem('token', response.data.data.token);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('user', JSON.stringify(response.data.data.user));
+          localStorage.setItem('token', response.data.data.token);
+        }
         router.push('/dashboard');
       } else {
         setError(response.data.error || 'Login failed');
       }
     } catch (err: any) {
+      console.error('Login error:', err);
       setError(err.response?.data?.error || 'Invalid credentials. Please try again.');
     } finally {
       setLoading(false);

@@ -359,10 +359,10 @@ export default function BusTrackingModule({ userRole, buses: initialBuses }: Bus
                   </span>
                   <div className="space-y-1">
                     <p className="text-xs font-mono text-gray-600 dark:text-gray-400">
-                      Lat: {selectedBus.currentLocation.lat.toFixed(6)}
+                      Lat: {selectedBus?.currentLocation?.lat?.toFixed(6) || 'N/A'}
                     </p>
                     <p className="text-xs font-mono text-gray-600 dark:text-gray-400">
-                      Lng: {selectedBus.currentLocation.lng.toFixed(6)}
+                      Lng: {selectedBus?.currentLocation?.lng?.toFixed(6) || 'N/A'}
                     </p>
                   </div>
                 </div>

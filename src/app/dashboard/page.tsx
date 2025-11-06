@@ -237,57 +237,164 @@ export default function DashboardPage() {
                 <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
                   Welcome back, {user.name}!
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                   <div className="card bg-gradient-to-br from-amrita-orange to-orange-600 text-white transform hover:scale-105 transition-transform">
-                    <h3 className="text-lg font-semibold">Total Students</h3>
-                    <p className="text-4xl font-bold mt-2">{data.students?.length || 0}</p>
-                    <p className="text-sm mt-2 opacity-90">Across all classes</p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-semibold opacity-90">Total Students</h3>
+                        <p className="text-4xl font-bold mt-2">{data.students?.length || 0}</p>
+                        <p className="text-sm mt-2 opacity-90">Across all classes</p>
+                      </div>
+                      <div className="text-5xl opacity-30">👨‍🎓</div>
+                    </div>
                   </div>
+                  
                   <div className="card bg-gradient-to-br from-amrita-blue to-blue-600 text-white transform hover:scale-105 transition-transform">
-                    <h3 className="text-lg font-semibold">Total Teachers</h3>
-                    <p className="text-4xl font-bold mt-2">{data.teachers?.length || 0}</p>
-                    <p className="text-sm mt-2 opacity-90">Active staff</p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-semibold opacity-90">Total Teachers</h3>
+                        <p className="text-4xl font-bold mt-2">{data.teachers?.length || 0}</p>
+                        <p className="text-sm mt-2 opacity-90">Active staff</p>
+                      </div>
+                      <div className="text-5xl opacity-30">👨‍🏫</div>
+                    </div>
                   </div>
+                  
                   <div className="card bg-gradient-to-br from-purple-500 to-purple-600 text-white transform hover:scale-105 transition-transform">
-                    <h3 className="text-lg font-semibold">Classes</h3>
-                    <p className="text-4xl font-bold mt-2">{data.classes?.length || 0}</p>
-                    <p className="text-sm mt-2 opacity-90">All sections</p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-semibold opacity-90">Classes</h3>
+                        <p className="text-4xl font-bold mt-2">{data.classes?.length || 0}</p>
+                        <p className="text-sm mt-2 opacity-90">All sections</p>
+                      </div>
+                      <div className="text-5xl opacity-30">🏫</div>
+                    </div>
+                  </div>
+                  
+                  <div className="card bg-gradient-to-br from-green-500 to-green-600 text-white transform hover:scale-105 transition-transform">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-semibold opacity-90">Library Books</h3>
+                        <p className="text-4xl font-bold mt-2">{data.books?.length || 0}</p>
+                        <p className="text-sm mt-2 opacity-90">Available books</p>
+                      </div>
+                      <div className="text-5xl opacity-30">📚</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional Stats Row */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                  <div className="card border-l-4 border-yellow-500">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Active Buses</p>
+                        <p className="text-3xl font-bold text-gray-900 dark:text-white">{data.buses?.length || 0}</p>
+                      </div>
+                      <div className="text-4xl">🚌</div>
+                    </div>
+                  </div>
+                  
+                  <div className="card border-l-4 border-pink-500">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Announcements</p>
+                        <p className="text-3xl font-bold text-gray-900 dark:text-white">{data.announcements?.length || 0}</p>
+                      </div>
+                      <div className="text-4xl">📢</div>
+                    </div>
+                  </div>
+                  
+                  <div className="card border-l-4 border-indigo-500">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Today's Date</p>
+                        <p className="text-xl font-bold text-gray-900 dark:text-white">
+                          {new Date().toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                        </p>
+                      </div>
+                      <div className="text-4xl">📅</div>
+                    </div>
                   </div>
                 </div>
 
                 {/* Recent Activity */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="card">
-                    <h3 className="text-xl font-semibold mb-4">Recent Announcements</h3>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-xl font-semibold">Recent Announcements</h3>
+                      <span className="text-sm text-blue-600 dark:text-blue-400 cursor-pointer hover:underline">View All</span>
+                    </div>
                     <div className="space-y-3">
-                      {data.announcements?.slice(0, 3).map((announcement: any) => (
-                        <div key={announcement.id} className="p-3 bg-gray-50 dark:bg-gray-700 rounded">
-                          <h4 className="font-semibold">{announcement.title}</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">{announcement.content}</p>
-                          <p className="text-xs text-gray-500 mt-1">{announcement.date}</p>
-                        </div>
-                      ))}
+                      {data.announcements && data.announcements.length > 0 ? (
+                        data.announcements.slice(0, 3).map((announcement: any) => (
+                          <div key={announcement.id} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border-l-4 border-blue-500">
+                            <h4 className="font-semibold text-gray-900 dark:text-white">{announcement.title}</h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{announcement.content}</p>
+                            <p className="text-xs text-gray-500 mt-2">📅 {announcement.date}</p>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-gray-500 dark:text-gray-400 text-center py-4">No announcements yet</p>
+                      )}
                     </div>
                   </div>
 
                   <div className="card">
-                    <h3 className="text-xl font-semibold mb-4">Quick Stats</h3>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded">
-                        <span>Active Buses</span>
-                        <span className="font-bold text-xl">{data.buses?.length || 0}</span>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded">
-                        <span>Library Books</span>
-                        <span className="font-bold text-xl">{data.books?.length || 0}</span>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded">
-                        <span>Total Classes</span>
-                        <span className="font-bold text-xl">{data.classes?.length || 0}</span>
-                      </div>
+                    <h3 className="text-xl font-semibold mb-4">Quick Access</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      {currentMenuItems.slice(1, 7).map((item) => (
+                        <button
+                          key={item.id}
+                          onClick={() => setActivePage(item.id)}
+                          className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-lg hover:shadow-lg transition-all transform hover:scale-105"
+                        >
+                          <div className="text-3xl mb-2">{item.icon}</div>
+                          <div className="text-sm font-semibold text-gray-900 dark:text-white">{item.name}</div>
+                        </button>
+                      ))}
                     </div>
                   </div>
                 </div>
+
+                {/* System Status */}
+                {user.role === 'admin' && (
+                  <div className="card mt-6">
+                    <h3 className="text-xl font-semibold mb-4">System Status</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white">Database</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">Connected</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white">API</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">Running</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white">Bus Tracking</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">Live</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white">Auto-Refresh</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">30s</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

@@ -15,8 +15,7 @@ interface Mark {
 interface Student {
   id: string;
   studentId: string;
-  firstName: string;
-  lastName: string;
+  name: string;
   rollNumber: string;
   class: string;
   section: string;
@@ -66,8 +65,8 @@ const MarksModule: React.FC<MarksModuleProps> = ({ userRole }) => {
       setLoading(true);
       const response = await fetch(`/api/students?class=${selectedClass}&section=${selectedSection}`);
       if (response.ok) {
-        const data = await response.json();
-        setStudents(data);
+        const result = await response.json();
+        setStudents(result.success ? result.data : result);
       }
     } catch (error) {
       console.error('Error loading students:', error);
@@ -316,7 +315,7 @@ const MarksModule: React.FC<MarksModuleProps> = ({ userRole }) => {
                         {student.studentId}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {student.firstName} {student.lastName}
+                        {student.name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <input

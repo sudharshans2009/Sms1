@@ -9,6 +9,8 @@ const TimetableComponent = dynamic(() => import('@/components/TimetableComponent
 const StudentsModule = dynamic(() => import('@/components/StudentsModule'), { ssr: false });
 const TeachersModule = dynamic(() => import('@/components/TeachersModule'), { ssr: false });
 const ClassesModule = dynamic(() => import('@/components/ClassesModule'), { ssr: false });
+const AttendanceModule = dynamic(() => import('@/components/AttendanceModule'), { ssr: false });
+const MarksModule = dynamic(() => import('@/components/MarksModule'), { ssr: false });
 const BusTrackingModule = dynamic(() => import('@/components/BusTrackingModule'), { ssr: false });
 const ReportsModule = dynamic(() => import('@/components/ReportsModule'), { ssr: false });
 const AnnouncementsModule = dynamic(() => import('@/components/AnnouncementsModule'), { ssr: false });
@@ -27,52 +29,6 @@ const PlaceholderModule = ({ userRole, classes }: any) => (
           <p className="text-gray-600 dark:text-gray-400">Class Head: {cls.classHead}</p>
         </div>
       ))}
-    </div>
-  </div>
-);
-
-const AttendanceModule = ({ userRole, students }: any) => (
-  <div className="space-y-6">
-    <h2 className="text-2xl font-bold">Attendance Management</h2>
-    <div className="card">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <select className="input-field">
-          <option>Select Class</option>
-          {['LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'].map(c => (
-            <option key={c} value={c}>Class {c}</option>
-          ))}
-        </select>
-        <select className="input-field">
-          <option>Select Section</option>
-          {['A', 'B', 'C', 'D'].map(s => (
-            <option key={s} value={s}>Section {s}</option>
-          ))}
-        </select>
-      </div>
-      <button className="btn-primary">Mark Attendance</button>
-    </div>
-  </div>
-);
-
-const MarksModule = ({ userRole, students }: any) => (
-  <div className="space-y-6">
-    <h2 className="text-2xl font-bold">Marks Management</h2>
-    <div className="card">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <select className="input-field">
-          <option>Select Class</option>
-        </select>
-        <select className="input-field">
-          <option>Select Section</option>
-        </select>
-        <select className="input-field">
-          <option>Select Exam Type</option>
-          <option value="periodic">Periodic Test</option>
-          <option value="midterm">Mid Term</option>
-          <option value="term">Term Exam</option>
-        </select>
-      </div>
-      <button className="btn-primary">Enter Marks</button>
     </div>
   </div>
 );
@@ -352,11 +308,11 @@ export default function DashboardPage() {
             )}
 
             {activePage === 'attendance' && (
-              <AttendanceModule userRole={user.role} students={data.students} />
+              <AttendanceModule userRole={user.role} />
             )}
 
             {activePage === 'marks' && (
-              <MarksModule userRole={user.role} students={data.students} />
+              <MarksModule userRole={user.role} />
             )}
 
             {activePage === 'reports' && (

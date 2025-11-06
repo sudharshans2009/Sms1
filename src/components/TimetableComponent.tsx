@@ -19,7 +19,20 @@ export default function TimetableComponent({ userRole }: TimetableProps) {
   const classes = ['LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
   const sections = ['A', 'B', 'C', 'D'];
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-  const periods = ['1', '2', '3', '4', '5', '6', '7'];
+  const periods = [
+    { id: '1', label: 'Period 1', time: '8:45 - 9:25' },
+    { id: '2', label: 'Period 2', time: '9:25 - 10:05' },
+    { id: 'break1', label: 'Break', time: '10:05 - 10:15', isBreak: true },
+    { id: '3', label: 'Period 3', time: '10:15 - 10:55' },
+    { id: '4', label: 'Period 4', time: '10:55 - 11:35' },
+    { id: '5', label: 'Period 5', time: '11:35 - 12:15' },
+    { id: 'lunch', label: 'Lunch', time: '12:15 - 12:55', isBreak: true },
+    { id: '6', label: 'Period 6', time: '12:55 - 1:35' },
+    { id: '7', label: 'Period 7', time: '1:35 - 2:15' },
+    { id: 'break2', label: 'Break', time: '2:15 - 2:25', isBreak: true },
+    { id: '8', label: 'Period 8', time: '2:25 - 3:05' },
+    { id: '9', label: 'Period 9', time: '3:05 - 3:45' },
+  ];
 
   useEffect(() => {
     if (selectedClass && selectedSection) {
@@ -175,10 +188,14 @@ export default function TimetableComponent({ userRole }: TimetableProps) {
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-100 dark:bg-gray-700">
-                  <th className="timetable-cell timetable-header">Day/Period</th>
+                  <th className="timetable-cell timetable-header">Day</th>
                   {periods.map((period) => (
-                    <th key={period} className="timetable-cell timetable-header">
-                      Period {period}
+                    <th 
+                      key={period.id} 
+                      className={`timetable-cell timetable-header ${period.isBreak ? 'bg-amber-100 dark:bg-amber-900/30' : ''}`}
+                    >
+                      <div className="font-bold">{period.label}</div>
+                      <div className="text-xs font-normal opacity-75">{period.time}</div>
                     </th>
                   ))}
                 </tr>
@@ -190,13 +207,24 @@ export default function TimetableComponent({ userRole }: TimetableProps) {
                       {day}
                     </td>
                     {periods.map((period) => {
+                      if (period.isBreak) {
+                        return (
+                          <td
+                            key={`${day}-${period.id}`}
+                            className="timetable-cell bg-amber-50 dark:bg-amber-900/20 text-center text-amber-700 dark:text-amber-300 font-medium"
+                          >
+                            {period.label}
+                          </td>
+                        );
+                      }
+
                       const subject = isEditing
-                        ? editedSchedule?.[day]?.[period] || ''
-                        : timetable.schedule?.[day]?.[period] || '';
+                        ? editedSchedule?.[day]?.[period.id] || ''
+                        : timetable.schedule?.[day]?.[period.id] || '';
 
                       return (
                         <td
-                          key={`${day}-${period}`}
+                          key={`${day}-${period.id}`}
                           className={`timetable-cell ${
                             isEditing ? 'timetable-cell-editable p-0' : ''
                           }`}
@@ -205,12 +233,12 @@ export default function TimetableComponent({ userRole }: TimetableProps) {
                             <input
                               type="text"
                               value={subject}
-                              onChange={(e) => handleCellChange(day, period, e.target.value)}
+                              onChange={(e) => handleCellChange(day, period.id, e.target.value)}
                               className="w-full h-full px-3 py-3 text-center border-0 focus:ring-2 focus:ring-amrita-blue dark:bg-gray-800"
                               placeholder="Subject"
                             />
                           ) : (
-                            <div className="font-medium">{subject}</div>
+                            <div className="font-medium">{subject || '-'}</div>
                           )}
                         </td>
                       );

@@ -200,6 +200,27 @@ export default function LibraryModule({ userRole }: LibraryModuleProps) {
     }
   };
 
+  const handleDeleteAllBooks = async () => {
+    if (!confirm('⚠️ Are you sure you want to delete ALL books? This action cannot be undone!')) return;
+    
+    if (!confirm('⚠️ FINAL WARNING: This will permanently delete ALL books from the library. Continue?')) return;
+
+    try {
+      setLoading(true);
+      // Delete all books one by one
+      const deletePromises = books.map((book) => axios.delete(`/api/library/books/${book.id}`));
+      await Promise.all(deletePromises);
+      
+      setBooks([]);
+      alert('✅ All books deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting all books:', error);
+      alert('❌ Failed to delete all books');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredBooks = books.filter((book) => {
     const matchesSearch =
       book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -242,13 +263,24 @@ export default function LibraryModule({ userRole }: LibraryModuleProps) {
           </p>
         </div>
         {(userRole === 'admin' || userRole === 'teacher') && (
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="btn-primary bg-amrita-orange hover:bg-orange-600 flex items-center gap-2"
-          >
-            <span>➕</span>
-            Add New Book
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="btn-primary bg-amrita-orange hover:bg-orange-600 flex items-center gap-2"
+            >
+              <span>➕</span>
+              Add New Book
+            </button>
+            {userRole === 'admin' && books.length > 0 && (
+              <button
+                onClick={handleDeleteAllBooks}
+                className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+              >
+                <span>🗑️</span>
+                Delete All Books
+              </button>
+            )}
+          </div>
         )}
       </div>
 

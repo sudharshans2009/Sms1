@@ -16,24 +16,30 @@ export default function Home() {
 
   useEffect(() => {
     // Check if user is already logged in
-    const user = localStorage.getItem('user');
-    if (user) {
-      router.push('/dashboard');
-    }
+    if (typeof window !== 'undefined') {
+      const user = localStorage.getItem('user');
+      if (user) {
+        router.push('/dashboard');
+      }
 
-    // Load theme from localStorage
-    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark';
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+      // Load theme from localStorage
+      const savedTheme = localStorage.getItem('theme') as 'light' | 'dark';
+      if (savedTheme) {
+        setTheme(savedTheme);
+        document.documentElement.classList.remove('light', 'dark');
+        document.documentElement.classList.add(savedTheme);
+      }
     }
   }, [router]);
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('theme', newTheme);
+      document.documentElement.classList.remove('light', 'dark');
+      document.documentElement.classList.add(newTheme);
+    }
   };
 
   const openLoginModal = (role: 'admin' | 'teacher' | 'student' | 'driver') => {
@@ -336,15 +342,6 @@ export default function Home() {
                   'Login'
                 )}
               </button>
-
-              {/* Demo Credentials */}
-              <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Demo Credentials:</p>
-                <p className="text-xs text-gray-600 dark:text-gray-400">
-                  Email: {selectedRole}@amrita.edu<br />
-                  Password: {selectedRole}123
-                </p>
-              </div>
             </form>
           </div>
         </div>

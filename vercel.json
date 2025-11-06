@@ -1,9 +1,19 @@
 {
   "version": 2,
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
   "regions": ["sin1"],
   "build": {
     "env": {
       "PRISMA_GENERATE_SKIP_AUTOINSTALL": "false"
+    }
+  },
+  "functions": {
+    "app/api/**/*.ts": {
+      "memory": 1024,
+      "maxDuration": 10
     }
   }
 }

@@ -165,7 +165,7 @@ model Class {
   updatedAt     DateTime @updatedAt
 
   // Relations
-  teacher       Teacher?  @relation(fields: [teacherId], references: [id], onDelete: SetNull)
+  teacher       Teacher?      @relation(fields: [teacherId], references: [id], onDelete: SetNull)
   timetable     Timetable?
   announcements Announcement[]
 

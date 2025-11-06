@@ -86,6 +86,23 @@ export default function StudentsModule({ userRole }: StudentsModuleProps) {
     }
   };
 
+  const handleDeleteStudent = async (studentId: string, studentName: string) => {
+    if (!confirm(`Are you sure you want to delete ${studentName}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await axios.delete(`/api/students/${studentId}`);
+      if (response.data.success) {
+        setStudents(students.filter(s => s.id !== studentId));
+        alert('✅ Student deleted successfully!');
+      }
+    } catch (error: any) {
+      console.error('Error deleting student:', error);
+      alert(`❌ ${error.response?.data?.error || 'Failed to delete student'}`);
+    }
+  };
+
   const filterStudents = (students: any[], type: string) => {
     let filtered = students;
     
@@ -263,7 +280,12 @@ export default function StudentsModule({ userRole }: StudentsModuleProps) {
                           <>
                             <button className="text-green-600 hover:text-green-800">Edit</button>
                             {userRole === 'admin' && (
-                              <button className="text-red-600 hover:text-red-800">Delete</button>
+                              <button 
+                                onClick={() => handleDeleteStudent(student.id, student.name)}
+                                className="text-red-600 hover:text-red-800"
+                              >
+                                Delete
+                              </button>
                             )}
                           </>
                         )}

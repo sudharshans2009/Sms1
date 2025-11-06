@@ -20,6 +20,9 @@ export default function Home() {
       const user = localStorage.getItem('user');
       if (user) {
         router.push('/dashboard');
+      } else {
+        // Redirect to login page
+        router.push('/login');
       }
 
       // Load theme from localStorage

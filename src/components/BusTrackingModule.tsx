@@ -205,7 +205,7 @@ export default function BusTrackingModule({ userRole, buses: initialBuses }: Bus
                 </span>
               </h3>
               <div className="rounded-lg h-[460px] overflow-hidden border-2 border-gray-200 dark:border-gray-700">
-                {isClient ? (
+                {isClient && selectedBus?.currentLocation?.lat && selectedBus?.currentLocation?.lng ? (
                   <MapContainer
                     center={[selectedBus.currentLocation.lat, selectedBus.currentLocation.lng]}
                     zoom={14}
@@ -249,7 +249,7 @@ export default function BusTrackingModule({ userRole, buses: initialBuses }: Bus
                     </Marker>
 
                     {/* Show all other buses on the map */}
-                    {buses.filter(bus => bus.id !== selectedBus.id).map(bus => (
+                    {buses.filter(bus => bus.id !== selectedBus.id && bus.currentLocation?.lat && bus.currentLocation?.lng).map(bus => (
                       <Marker
                         key={bus.id}
                         position={[bus.currentLocation.lat, bus.currentLocation.lng]}

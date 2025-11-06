@@ -74,6 +74,23 @@ export default function TeachersModule({ userRole }: TeachersModuleProps) {
     }
   };
 
+  const handleDeleteTeacher = async (teacherId: string, teacherName: string) => {
+    if (!confirm(`Are you sure you want to delete ${teacherName}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await axios.delete(`/api/teachers/${teacherId}`);
+      if (response.data.success) {
+        setTeachers(teachers.filter(t => t.id !== teacherId));
+        alert('✅ Teacher deleted successfully!');
+      }
+    } catch (error: any) {
+      console.error('Error deleting teacher:', error);
+      alert(`❌ ${error.response?.data?.error || 'Failed to delete teacher'}`);
+    }
+  };
+
   const filteredTeachers = teachers.filter(t =>
     searchTerm === '' ||
     t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -159,7 +176,12 @@ export default function TeachersModule({ userRole }: TeachersModuleProps) {
                         {userRole === 'admin' && (
                           <>
                             <button className="text-green-600 hover:text-green-800">Edit</button>
-                            <button className="text-red-600 hover:text-red-800">Delete</button>
+                            <button 
+                              onClick={() => handleDeleteTeacher(teacher.id, teacher.name)}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              Delete
+                            </button>
                           </>
                         )}
                       </td>

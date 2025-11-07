@@ -47,8 +47,11 @@ export default function AnnouncementsModule({ userRole, announcements: initialAn
       if (editingAnnouncement) {
         // Update existing
         const response = await axios.put('/api/announcements', {
-          ...formData,
-          id: editingAnnouncement.id
+          id: editingAnnouncement.id,
+          title: formData.title,
+          content: formData.content,
+          priority: formData.priority.toUpperCase(),
+          target: formData.target.toUpperCase(),
         });
         if (response.data.success) {
           setAnnouncements(announcements.map(a => 
@@ -58,8 +61,10 @@ export default function AnnouncementsModule({ userRole, announcements: initialAn
       } else {
         // Create new
         const response = await axios.post('/api/announcements', {
-          ...formData,
-          id: `A${Date.now()}`
+          title: formData.title,
+          content: formData.content,
+          priority: formData.priority.toUpperCase(),
+          target: formData.target.toUpperCase(),
         });
         if (response.data.success) {
           setAnnouncements([response.data.data, ...announcements]);
@@ -86,9 +91,9 @@ export default function AnnouncementsModule({ userRole, announcements: initialAn
     setFormData({
       title: announcement.title,
       content: announcement.content,
-      priority: announcement.priority,
-      target: announcement.target,
-      date: announcement.date
+      priority: (announcement.priority || 'NORMAL').toLowerCase(),
+      target: (announcement.target || 'ALL').toLowerCase(),
+      date: announcement.createdAt ? new Date(announcement.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
     });
     setShowModal(true);
   };
@@ -100,6 +105,7 @@ export default function AnnouncementsModule({ userRole, announcements: initialAn
       const response = await axios.delete(`/api/announcements?id=${id}`);
       if (response.data.success) {
         setAnnouncements(announcements.filter(a => a.id !== id));
+        alert('Announcement deleted successfully!');
       }
     } catch (error) {
       console.error('Error deleting announcement:', error);
@@ -108,7 +114,8 @@ export default function AnnouncementsModule({ userRole, announcements: initialAn
   };
 
   const getPriorityColor = (priority: string) => {
-    switch(priority) {
+    const p = (priority || 'NORMAL').toLowerCase();
+    switch(p) {
       case 'urgent': return 'bg-red-500';
       case 'important': return 'bg-amrita-orange';
       default: return 'bg-amrita-blue';
@@ -116,10 +123,11 @@ export default function AnnouncementsModule({ userRole, announcements: initialAn
   };
 
   const getPriorityBadge = (priority: string) => {
-    switch(priority) {
-      case 'urgent': return 'bg-red-100 text-red-700';
-      case 'important': return 'bg-orange-100 text-orange-700';
-      default: return 'bg-blue-100 text-blue-700';
+    const p = (priority || 'NORMAL').toLowerCase();
+    switch(p) {
+      case 'urgent': return 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200';
+      case 'important': return 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-200';
+      default: return 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200';
     }
   };
 
@@ -156,10 +164,12 @@ export default function AnnouncementsModule({ userRole, announcements: initialAn
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="text-xl font-bold mb-1">{announcement.title}</h3>
-                  <p className="text-sm opacity-90">📅 {new Date(announcement.date).toLocaleDateString()}</p>
+                  <p className="text-sm opacity-90">
+                    📅 {new Date(announcement.createdAt || announcement.date || Date.now()).toLocaleDateString()}
+                  </p>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-xs font-bold ${getPriorityBadge(announcement.priority)}`}>
-                  {announcement.priority.toUpperCase()}
+                  {(announcement.priority || 'NORMAL').toUpperCase()}
                 </span>
               </div>
             </div>
@@ -170,20 +180,20 @@ export default function AnnouncementsModule({ userRole, announcements: initialAn
               
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-500 dark:text-gray-400">
-                  🎯 Target: <span className="font-semibold">{announcement.target}</span>
+                  🎯 Target: <span className="font-semibold">{(announcement.target || 'ALL').toUpperCase()}</span>
                 </span>
                 
                 {userRole === 'admin' && (
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleEdit(announcement)}
-                      className="text-amrita-blue hover:text-blue-700 font-medium"
+                      className="text-amrita-blue hover:text-blue-700 dark:hover:text-blue-400 font-medium"
                     >
                       ✏️ Edit
                     </button>
                     <button
                       onClick={() => handleDelete(announcement.id)}
-                      className="text-red-500 hover:text-red-700 font-medium"
+                      className="text-red-500 hover:text-red-700 dark:hover:text-red-400 font-medium"
                     >
                       🗑️ Delete
                     </button>

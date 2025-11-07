@@ -220,32 +220,32 @@ export default function MessagesModule({ currentUser }: MessagesModuleProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Messages</h2>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Messages</h2>
           {unreadCount > 0 && activeTab === 'received' && (
-            <span className="text-sm text-red-600 font-semibold">
+            <span className="text-sm text-red-600 dark:text-red-400 font-semibold">
               {unreadCount} unread message{unreadCount > 1 ? 's' : ''}
             </span>
           )}
         </div>
         <button
           onClick={() => setShowCompose(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
         >
           ✉️ Compose Message
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-4 mb-6 border-b">
+      <div className="flex gap-4 mb-6 border-b border-gray-200 dark:border-gray-700">
         <button
           onClick={() => setActiveTab('received')}
           className={`pb-2 px-4 font-semibold transition-colors ${
             activeTab === 'received'
-              ? 'border-b-2 border-blue-600 text-blue-600'
-              : 'text-gray-600 hover:text-blue-600'
+              ? 'border-b-2 border-blue-600 text-blue-600 dark:text-blue-400'
+              : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400'
           }`}
         >
           📥 Inbox
@@ -254,8 +254,8 @@ export default function MessagesModule({ currentUser }: MessagesModuleProps) {
           onClick={() => setActiveTab('sent')}
           className={`pb-2 px-4 font-semibold transition-colors ${
             activeTab === 'sent'
-              ? 'border-b-2 border-blue-600 text-blue-600'
-              : 'text-gray-600 hover:text-blue-600'
+              ? 'border-b-2 border-blue-600 text-blue-600 dark:text-blue-400'
+              : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400'
           }`}
         >
           📤 Sent
@@ -265,12 +265,12 @@ export default function MessagesModule({ currentUser }: MessagesModuleProps) {
       {/* Compose Modal */}
       {showCompose && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold">Compose Message</h3>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">Compose Message</h3>
               <button
                 onClick={() => setShowCompose(false)}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-2xl"
               >
                 ×
               </button>
@@ -278,13 +278,13 @@ export default function MessagesModule({ currentUser }: MessagesModuleProps) {
             
             <form onSubmit={handleSendMessage} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   To:
                 </label>
                 <select
                   value={formData.receiverId}
                   onChange={handleRecipientChange}
-                  className="w-full p-2 border rounded-lg"
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   required
                 >
                   <option value="">Select recipient...</option>
@@ -297,13 +297,13 @@ export default function MessagesModule({ currentUser }: MessagesModuleProps) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Priority:
                 </label>
                 <select
                   value={formData.priority}
                   onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
-                  className="w-full p-2 border rounded-lg"
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
                   <option value="NORMAL">Normal</option>
                   <option value="IMPORTANT">Important</option>
@@ -312,27 +312,27 @@ export default function MessagesModule({ currentUser }: MessagesModuleProps) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Subject:
                 </label>
                 <input
                   type="text"
                   value={formData.subject}
                   onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                  className="w-full p-2 border rounded-lg"
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="Enter subject..."
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Message:
                 </label>
                 <textarea
                   value={formData.content}
                   onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  className="w-full p-2 border rounded-lg"
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   rows={8}
                   placeholder="Enter your message..."
                   required
@@ -342,14 +342,14 @@ export default function MessagesModule({ currentUser }: MessagesModuleProps) {
               <div className="flex gap-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  className="flex-1 bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
                 >
                   Send Message
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowCompose(false)}
-                  className="flex-1 bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+                  className="flex-1 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
                 >
                   Cancel
                 </button>
@@ -362,53 +362,53 @@ export default function MessagesModule({ currentUser }: MessagesModuleProps) {
       {/* Message Detail Modal */}
       {selectedMessage && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
-                <h3 className="text-xl font-bold">{selectedMessage.subject}</h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{selectedMessage.subject}</h3>
                 <span className={`text-xs px-2 py-1 rounded-full ${getPriorityColor(selectedMessage.priority)}`}>
                   {selectedMessage.priority}
                 </span>
               </div>
               <button
                 onClick={() => setSelectedMessage(null)}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-2xl"
               >
                 ×
               </button>
             </div>
             
             <div className="space-y-3 mb-4">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 <strong>From:</strong> {selectedMessage.senderName} ({selectedMessage.senderRole})
               </p>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 <strong>To:</strong> {selectedMessage.receiverName} ({selectedMessage.receiverRole})
               </p>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 <strong>Date:</strong> {new Date(selectedMessage.createdAt).toLocaleString()}
               </p>
               {selectedMessage.isRead && selectedMessage.readAt && (
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   <strong>Read:</strong> {new Date(selectedMessage.readAt).toLocaleString()}
                 </p>
               )}
             </div>
 
-            <div className="bg-gray-50 p-4 rounded-lg mb-4">
-              <p className="whitespace-pre-wrap">{selectedMessage.content}</p>
+            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-4">
+              <p className="whitespace-pre-wrap text-gray-900 dark:text-gray-100">{selectedMessage.content}</p>
             </div>
 
             <div className="flex gap-4">
               <button
                 onClick={() => handleDeleteMessage(selectedMessage.id)}
-                className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                className="flex-1 bg-red-600 dark:bg-red-700 text-white px-4 py-2 rounded-lg hover:bg-red-700 dark:hover:bg-red-600 transition-colors"
               >
                 Delete
               </button>
               <button
                 onClick={() => setSelectedMessage(null)}
-                className="flex-1 bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+                className="flex-1 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
               >
                 Close
               </button>
@@ -420,9 +420,9 @@ export default function MessagesModule({ currentUser }: MessagesModuleProps) {
       {/* Messages List */}
       <div className="space-y-2">
         {loading ? (
-          <div className="text-center py-8 text-gray-500">Loading messages...</div>
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400">Loading messages...</div>
         ) : messages.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
             No messages found
           </div>
         ) : (
@@ -435,8 +435,8 @@ export default function MessagesModule({ currentUser }: MessagesModuleProps) {
                 }
                 setSelectedMessage(message);
               }}
-              className={`p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${
-                !message.isRead && activeTab === 'received' ? 'bg-blue-50 border-blue-300' : ''
+              className={`p-4 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                !message.isRead && activeTab === 'received' ? 'bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20 border-blue-300 dark:border-blue-700' : ''
               }`}
             >
               <div className="flex justify-between items-start">
@@ -445,27 +445,27 @@ export default function MessagesModule({ currentUser }: MessagesModuleProps) {
                     {!message.isRead && activeTab === 'received' && (
                       <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
                     )}
-                    <h4 className="font-semibold text-gray-800">{message.subject}</h4>
+                    <h4 className="font-semibold text-gray-800 dark:text-white">{message.subject}</h4>
                     <span className={`text-xs px-2 py-1 rounded-full ${getPriorityColor(message.priority)}`}>
                       {message.priority}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     {activeTab === 'received' ? (
                       <>From: {message.senderName} ({message.senderRole})</>
                     ) : (
                       <>To: {message.receiverName} ({message.receiverRole})</>
                     )}
                   </p>
-                  <p className="text-sm text-gray-500 mt-1 line-clamp-1">
+                  <p className="text-sm text-gray-500 dark:text-gray-500 mt-1 line-clamp-1">
                     {message.content}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-gray-500">
                     {new Date(message.createdAt).toLocaleDateString()}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-gray-500">
                     {new Date(message.createdAt).toLocaleTimeString()}
                   </p>
                 </div>

@@ -49,3 +49,62 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// PUT /api/announcements
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json();
+    
+    if (!body.id) {
+      return NextResponse.json(
+        { success: false, error: 'Missing announcement ID' },
+        { status: 400 }
+      );
+    }
+
+    const announcement = await prisma.announcement.update({
+      where: { id: body.id },
+      data: {
+        title: body.title,
+        content: body.content,
+        priority: body.priority,
+        target: body.target,
+      },
+    });
+    
+    return NextResponse.json({ success: true, data: announcement });
+  } catch (error) {
+    console.error('Error updating announcement:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to update announcement' },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE /api/announcements
+export async function DELETE(request: NextRequest) {
+  try {
+    const searchParams = request.nextUrl.searchParams;
+    const id = searchParams.get('id');
+    
+    if (!id) {
+      return NextResponse.json(
+        { success: false, error: 'Missing announcement ID' },
+        { status: 400 }
+      );
+    }
+
+    await prisma.announcement.delete({
+      where: { id },
+    });
+    
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting announcement:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to delete announcement' },
+      { status: 500 }
+    );
+  }
+}

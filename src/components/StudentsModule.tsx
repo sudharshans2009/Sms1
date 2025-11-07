@@ -178,6 +178,136 @@ export default function StudentsModule({ userRole }: StudentsModuleProps) {
     }
   };
 
+  // Export functions
+  const exportStudentsToCSV = (data: any[], filename: string) => {
+    console.log('📊 Exporting students to CSV:', filename, data.length, 'students');
+    
+    if (data.length === 0) {
+      alert('No students to export');
+      return;
+    }
+
+    // Define CSV headers
+    const headers = [
+      'Student ID',
+      'Name',
+      'Class',
+      'Section',
+      'Roll Number',
+      'Date of Birth',
+      'Gender',
+      'Parent Name',
+      'Parent Phone',
+      'Parent Email',
+      'Student Phone',
+      'Student Email',
+      'Address',
+      'Blood Group',
+      'Bus',
+    ];
+
+    // Convert data to CSV format
+    const csvData = data.map(student => [
+      student.studentId || '',
+      student.name || '',
+      student.class || '',
+      student.section || '',
+      student.rollNumber || '',
+      student.dateOfBirth ? new Date(student.dateOfBirth).toLocaleDateString() : '',
+      student.gender || '',
+      student.parentName || '',
+      student.parentPhone || '',
+      student.parentEmail || '',
+      student.studentPhone || '',
+      student.studentEmail || '',
+      student.address || '',
+      student.bloodGroup || '',
+      student.bus || '',
+    ]);
+
+    // Combine headers and data
+    const csvContent = [headers, ...csvData]
+      .map(row => row.map(field => `"${field}"`).join(','))
+      .join('\n');
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    console.log('✅ CSV export completed successfully');
+    alert(`Successfully exported ${data.length} students to ${filename}`);
+  };
+
+  const handleExportAllStudents = () => {
+    console.log('📊 Starting export of all students');
+    const currentDate = new Date().toISOString().slice(0, 10);
+    const filename = `all_students_${currentDate}.csv`;
+    exportStudentsToCSV(students, filename);
+  };
+
+  const handleExportByClass = () => {
+    console.log('📊 Starting export by class');
+    const classFilter = prompt('Enter class to export (e.g., LKG, UKG, 1, 2, 10, 11, 12):');
+    
+    if (!classFilter) {
+      console.log('❌ Export cancelled - no class specified');
+      return;
+    }
+
+    const filteredStudents = students.filter(student => 
+      student.class?.toString().toLowerCase() === classFilter.toLowerCase()
+    );
+
+    if (filteredStudents.length === 0) {
+      alert(`No students found in class ${classFilter}`);
+      console.log(`❌ No students found for class: ${classFilter}`);
+      return;
+    }
+
+    const currentDate = new Date().toISOString().slice(0, 10);
+    const filename = `class_${classFilter}_students_${currentDate}.csv`;
+    exportStudentsToCSV(filteredStudents, filename);
+  };
+
+  const handleExportBySection = () => {
+    console.log('📊 Starting export by section');
+    const classFilter = prompt('Enter class (e.g., LKG, UKG, 1, 2, 10, 11, 12):');
+    
+    if (!classFilter) {
+      console.log('❌ Export cancelled - no class specified');
+      return;
+    }
+
+    const sectionFilter = prompt('Enter section (e.g., A, B, C):');
+    
+    if (!sectionFilter) {
+      console.log('❌ Export cancelled - no section specified');
+      return;
+    }
+
+    const filteredStudents = students.filter(student => 
+      student.class?.toString().toLowerCase() === classFilter.toLowerCase() &&
+      student.section?.toLowerCase() === sectionFilter.toLowerCase()
+    );
+
+    if (filteredStudents.length === 0) {
+      alert(`No students found in class ${classFilter} section ${sectionFilter}`);
+      console.log(`❌ No students found for class ${classFilter} section ${sectionFilter}`);
+      return;
+    }
+
+    const currentDate = new Date().toISOString().slice(0, 10);
+    const filename = `class_${classFilter}_section_${sectionFilter}_students_${currentDate}.csv`;
+    exportStudentsToCSV(filteredStudents, filename);
+  };
+
   const filterStudents = (students: any[], type: string) => {
     let filtered = students;
     
@@ -377,12 +507,30 @@ export default function StudentsModule({ userRole }: StudentsModuleProps) {
       {/* Export Section */}
       {userRole === 'admin' && (
         <div className="card">
-          <h3 className="text-lg font-semibold mb-4">Export Data</h3>
+          <h3 className="text-lg font-semibold mb-4">📊 Export Data</h3>
           <div className="flex gap-4">
-            <button className="btn-secondary">Export All Students</button>
-            <button className="btn-secondary">Export by Class</button>
-            <button className="btn-secondary">Export by Section</button>
+            <button 
+              onClick={handleExportAllStudents}
+              className="btn-secondary hover:bg-blue-50 hover:text-blue-700 transition-colors flex items-center gap-2"
+            >
+              📋 Export All Students
+            </button>
+            <button 
+              onClick={handleExportByClass}
+              className="btn-secondary hover:bg-green-50 hover:text-green-700 transition-colors flex items-center gap-2"
+            >
+              🎓 Export by Class
+            </button>
+            <button 
+              onClick={handleExportBySection}
+              className="btn-secondary hover:bg-purple-50 hover:text-purple-700 transition-colors flex items-center gap-2"
+            >
+              📚 Export by Section
+            </button>
           </div>
+          <p className="text-xs text-gray-500 mt-2">
+            💡 Exports will be downloaded as CSV files with all student details
+          </p>
         </div>
       )}
 

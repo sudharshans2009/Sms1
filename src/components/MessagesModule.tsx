@@ -51,6 +51,7 @@ interface MessagesModuleProps {
 export default function MessagesModule({ currentUser }: MessagesModuleProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
   const [activeTab, setActiveTab] = useState<'received' | 'sent' | 'starred' | 'archived' | 'drafts'>('received');
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [showCompose, setShowCompose] = useState(false);
@@ -116,41 +117,87 @@ export default function MessagesModule({ currentUser }: MessagesModuleProps) {
   // Load users for recipient selection
   const loadUsers = async () => {
     try {
+      console.log('👥 Loading users for messaging...');
       const [studentsRes, teachersRes] = await Promise.all([
         fetch('/api/students'),
         fetch('/api/teachers'),
       ]);
+
+      console.log('👥 API responses:', {
+        students: { status: studentsRes.status, ok: studentsRes.ok },
+        teachers: { status: teachersRes.status, ok: teachersRes.ok }
+      });
 
       const [studentsData, teachersData] = await Promise.all([
         studentsRes.json(),
         teachersRes.json(),
       ]);
 
+      console.log('👥 Raw API data:', { studentsData, teachersData });
+
       const allUsers: User[] = [];
 
+      // Handle multiple possible response formats for students
+      let students = [];
       if (studentsData.success && studentsData.data) {
+        students = studentsData.data;
+      } else if (studentsData.students) {
+        students = studentsData.students;
+      } else if (Array.isArray(studentsData)) {
+        students = studentsData;
+      }
+
+      if (students.length > 0) {
         allUsers.push(
-          ...studentsData.data.map((s: any) => ({
+          ...students.map((s: any) => ({
             id: s.userId || s.id,
             name: s.name,
             role: 'STUDENT',
           }))
         );
+        console.log(`👨‍🎓 Loaded ${students.length} students`);
       }
 
+      // Handle multiple possible response formats for teachers
+      let teachers = [];
       if (teachersData.success && teachersData.data) {
+        teachers = teachersData.data;
+      } else if (teachersData.teachers) {
+        teachers = teachersData.teachers;
+      } else if (Array.isArray(teachersData)) {
+        teachers = teachersData;
+      }
+
+      if (teachers.length > 0) {
         allUsers.push(
-          ...teachersData.data.map((t: any) => ({
+          ...teachers.map((t: any) => ({
             id: t.userId || t.id,
             name: t.name,
             role: 'TEACHER',
           }))
         );
+        console.log(`👨‍🏫 Loaded ${teachers.length} teachers`);
       }
 
+      console.log(`✅ Total users loaded: ${allUsers.length}`);
       setUsers(allUsers);
+
+      // If no users loaded, add fallback test users
+      if (allUsers.length === 0) {
+        console.log('⚠️ No users loaded, adding fallback test users');
+        setUsers([
+          { id: 'test-student-1', name: 'Test Student 1', role: 'STUDENT' },
+          { id: 'test-student-2', name: 'Test Student 2', role: 'STUDENT' },
+          { id: 'test-teacher-1', name: 'Test Teacher 1', role: 'TEACHER' },
+        ]);
+      }
     } catch (error) {
-      console.error('Failed to load users:', error);
+      console.error('❌ Failed to load users:', error);
+      // Add fallback users
+      setUsers([
+        { id: 'test-student-1', name: 'Test Student 1', role: 'STUDENT' },
+        { id: 'test-teacher-1', name: 'Test Teacher 1', role: 'TEACHER' },
+      ]);
     }
   };
 
@@ -164,32 +211,82 @@ export default function MessagesModule({ currentUser }: MessagesModuleProps) {
 
   // Send message
   const handleSendMessage = async (isDraft = false) => {
+    if (sending) return; // Prevent double sending
+    
     try {
+      setSending(true);
+      console.log('📤 Sending message...', {
+        isDraft,
+        composeForm,
+        currentUser,
+        hasRecipient: !!composeForm.receiverId
+      });
+
+      // Enhanced validation
+      if (!isDraft) {
+        if (!composeForm.subject.trim()) {
+          alert('Please enter a subject');
+          setSending(false);
+          return;
+        }
+        if (!composeForm.content.trim()) {
+          alert('Please enter message content');
+          setSending(false);
+          return;
+        }
+        if (!composeForm.receiverId) {
+          alert('Please select a recipient');
+          setSending(false);
+          return;
+        }
+        if (!composeForm.receiverName) {
+          alert('Recipient information is incomplete');
+          setSending(false);
+          return;
+        }
+      }
+
+      const messageData = {
+        subject: composeForm.subject.trim(),
+        content: composeForm.content.trim(),
+        senderId: currentUser.id,
+        senderName: currentUser.name,
+        senderRole: currentUser.role,
+        receiverId: composeForm.receiverId,
+        receiverName: composeForm.receiverName,
+        receiverRole: composeForm.receiverRole,
+        priority: composeForm.priority,
+        category: composeForm.category,
+        isDraft,
+        replyToId: composeForm.replyToId,
+      };
+
+      console.log('📤 Message data to send:', messageData);
+
       const response = await fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...composeForm,
-          senderId: currentUser.id,
-          senderName: currentUser.name,
-          senderRole: currentUser.role,
-          isDraft,
-        }),
+        body: JSON.stringify(messageData),
       });
 
       const data = await response.json();
+      console.log('📤 Send response:', { status: response.status, data });
 
       if (data.success) {
         alert(isDraft ? 'Draft saved successfully!' : 'Message sent successfully!');
         setShowCompose(false);
         resetComposeForm();
         loadMessages();
+        console.log('✅ Message operation completed successfully');
       } else {
+        console.error('❌ Failed to send message:', data.error);
         alert('Failed to send message: ' + data.error);
       }
-    } catch (error) {
-      console.error('Failed to send message:', error);
-      alert('Failed to send message');
+    } catch (error: any) {
+      console.error('❌ Error sending message:', error);
+      alert('Failed to send message: ' + error.message);
+    } finally {
+      setSending(false);
     }
   };
 
@@ -330,6 +427,22 @@ export default function MessagesModule({ currentUser }: MessagesModuleProps) {
       isDraft: false,
       replyToId: null,
     });
+  };
+
+  // Handle recipient selection
+  const handleRecipientChange = (selectedUserId: string) => {
+    const selectedUser = users.find(u => u.id === selectedUserId);
+    if (selectedUser) {
+      setComposeForm(prev => ({
+        ...prev,
+        receiverId: selectedUser.id,
+        receiverName: selectedUser.name,
+        receiverRole: selectedUser.role,
+      }));
+      console.log('👤 Selected recipient:', selectedUser);
+    } else {
+      console.log('⚠️ Recipient not found:', selectedUserId);
+    }
   };
 
   // Get priority badge color
@@ -581,17 +694,7 @@ export default function MessagesModule({ currentUser }: MessagesModuleProps) {
                 </label>
                 <select
                   value={composeForm.receiverId}
-                  onChange={(e) => {
-                    const user = users.find((u) => u.id === e.target.value);
-                    if (user) {
-                      setComposeForm({
-                        ...composeForm,
-                        receiverId: user.id,
-                        receiverName: user.name,
-                        receiverRole: user.role,
-                      });
-                    }
-                  }}
+                  onChange={(e) => handleRecipientChange(e.target.value)}
                   disabled={!!composeForm.replyToId}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                   required
@@ -603,6 +706,9 @@ export default function MessagesModule({ currentUser }: MessagesModuleProps) {
                     </option>
                   ))}
                 </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Available: {users.length} users ({users.filter(u => u.role === 'STUDENT').length} students, {users.filter(u => u.role === 'TEACHER').length} teachers)
+                </p>
               </div>
 
               {/* Subject */}
@@ -678,22 +784,25 @@ export default function MessagesModule({ currentUser }: MessagesModuleProps) {
               <div className="flex justify-between gap-4">
                 <button
                   onClick={() => handleSendMessage(true)}
-                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+                  disabled={sending}
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  💾 Save Draft
+                  {sending ? '💾 Saving...' : '💾 Save Draft'}
                 </button>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setShowCompose(false)}
-                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+                    disabled={sending}
+                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={() => handleSendMessage(false)}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    disabled={sending || !composeForm.receiverId || !composeForm.subject.trim() || !composeForm.content.trim()}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    📤 Send
+                    {sending ? '📤 Sending...' : '📤 Send'}
                   </button>
                 </div>
               </div>

@@ -171,6 +171,68 @@ export default function ReportsModule({ userRole, students: initialStudents }: R
     setLoading(false);
   };
 
+  // Export report data to CSV
+  const exportReportToCSV = () => {
+    if (!reportData || !reportData.students) {
+      alert('No report data to export. Please generate a report first.');
+      return;
+    }
+
+    console.log('📊 Exporting report to CSV:', reportData.students.length, 'students');
+
+    // Define CSV headers
+    const headers = [
+      'Student ID',
+      'Name',
+      'Class',
+      'Section',
+      'Attendance %',
+      'Performance %',
+      'Grade',
+      'Status',
+      'Total Marks',
+      'Max Marks',
+    ];
+
+    // Convert data to CSV format
+    const csvData = reportData.students.map((student: any) => [
+      student.studentId || '',
+      student.name || '',
+      student.class || '',
+      student.section || '',
+      student.metrics.attendancePercentage.toFixed(1),
+      student.metrics.percentage.toFixed(1),
+      student.metrics.grade || '',
+      student.metrics.status || '',
+      student.metrics.totalMarks || '0',
+      student.metrics.maxMarks || '0',
+    ]);
+
+    // Combine headers and data
+    const csvContent = [headers, ...csvData]
+      .map(row => row.map(field => `"${field}"`).join(','))
+      .join('\n');
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    const currentDate = new Date().toISOString().slice(0, 10);
+    const classSection = selectedClass && selectedSection ? `_${selectedClass}_${selectedSection}` : 
+                         selectedClass ? `_${selectedClass}` : '';
+    const filename = `report_${reportType}${classSection}_${currentDate}.csv`;
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    console.log('✅ Report CSV export completed successfully');
+    alert(`Successfully exported ${reportData.students.length} students report to ${filename}`);
+  };
+
   const filteredStudentsForDropdown = students
     .filter((s: any) => {
       if (selectedClass && s.class !== selectedClass) return false;
@@ -340,6 +402,22 @@ export default function ReportsModule({ userRole, students: initialStudents }: R
               <h3 className="text-sm font-semibold opacity-90">Avg Performance</h3>
               <p className="text-3xl font-bold mt-2">{reportData.summary.avgPercentage.toFixed(1)}%</p>
             </div>
+          </div>
+
+          {/* Export Section */}
+          <div className="card">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-bold">📊 Export Report Data</h3>
+              <button
+                onClick={exportReportToCSV}
+                className="btn-primary bg-green-600 hover:bg-green-700 flex items-center gap-2"
+              >
+                📄 Export to CSV
+              </button>
+            </div>
+            <p className="text-sm text-gray-600 mt-2">
+              💡 Export includes all student data with attendance, performance, and grade information
+            </p>
           </div>
 
           <div className="card">

@@ -42,12 +42,16 @@ export default function LibraryModule({ userRole }: LibraryModuleProps) {
   const [books, setBooks] = useState<Book[]>([]);
   const [borrowedBooks, setBorrowedBooks] = useState<BorrowedBook[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'all' | 'borrowed' | 'add'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'borrowed' | 'analytics' | 'reservations'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedLanguage, setSelectedLanguage] = useState('all');
+  const [sortBy, setSortBy] = useState('title');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showBorrowModal, setShowBorrowModal] = useState(false);
+  const [showReserveModal, setShowReserveModal] = useState(false);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+  const [reservations, setReservations] = useState<any[]>([]);
 
   const [newBook, setNewBook] = useState({
     bookId: '',
@@ -83,6 +87,108 @@ export default function LibraryModule({ userRole }: LibraryModuleProps) {
     'magazine',
     'other',
   ];
+
+  const languages = ['English', 'Hindi', 'Tamil', 'Malayalam', 'Telugu', 'Kannada', 'Other'];
+
+  // Export functions
+  const exportBooksToCSV = () => {
+    console.log('📊 Exporting books to CSV:', books.length, 'books');
+    
+    if (books.length === 0) {
+      alert('No books to export');
+      return;
+    }
+
+    const headers = [
+      'Book ID', 'Title', 'Author', 'ISBN', 'Category', 'Publisher', 
+      'Year', 'Edition', 'Language', 'Pages', 'Price', 'Quantity', 
+      'Available', 'Location', 'Description'
+    ];
+
+    const csvData = books.map(book => [
+      book.bookId || '',
+      book.title || '',
+      book.author || '',
+      book.isbn || '',
+      book.category || '',
+      book.publisher || '',
+      book.year || '',
+      book.edition || '',
+      book.language || '',
+      book.pages || '',
+      book.price || '',
+      book.quantity || '',
+      book.available || '',
+      book.location || '',
+      book.description || '',
+    ]);
+
+    const csvContent = [headers, ...csvData]
+      .map(row => row.map(field => `"${field}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    const currentDate = new Date().toISOString().slice(0, 10);
+    const filename = `library_books_${currentDate}.csv`;
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    console.log('✅ Books CSV export completed successfully');
+    alert(`Successfully exported ${books.length} books to ${filename}`);
+  };
+
+  const exportBorrowedBooksToCSV = () => {
+    console.log('📊 Exporting borrowed books to CSV:', borrowedBooks.length, 'records');
+    
+    if (borrowedBooks.length === 0) {
+      alert('No borrowed books to export');
+      return;
+    }
+
+    const headers = [
+      'Book ID', 'Book Title', 'Student ID', 'Student Name', 
+      'Borrow Date', 'Due Date', 'Return Date', 'Status', 'Fine'
+    ];
+
+    const csvData = borrowedBooks.map(borrow => [
+      borrow.book.bookId || '',
+      borrow.book.title || '',
+      borrow.student.studentId || '',
+      borrow.student.name || '',
+      new Date(borrow.borrowDate).toLocaleDateString(),
+      new Date(borrow.dueDate).toLocaleDateString(),
+      borrow.returnDate ? new Date(borrow.returnDate).toLocaleDateString() : '',
+      borrow.status || '',
+      borrow.fine || '0',
+    ]);
+
+    const csvContent = [headers, ...csvData]
+      .map(row => row.map(field => `"${field}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    const currentDate = new Date().toISOString().slice(0, 10);
+    const filename = `borrowed_books_${currentDate}.csv`;
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    console.log('✅ Borrowed books CSV export completed successfully');
+    alert(`Successfully exported ${borrowedBooks.length} borrowed book records to ${filename}`);
+  };
 
   useEffect(() => {
     loadBooks();
@@ -221,16 +327,36 @@ export default function LibraryModule({ userRole }: LibraryModuleProps) {
     }
   };
 
-  const filteredBooks = books.filter((book) => {
-    const matchesSearch =
-      book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      book.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      book.isbn.includes(searchTerm) ||
-      book.bookId.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory =
-      selectedCategory === 'all' || book.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const filteredBooks = books
+    .filter((book) => {
+      const matchesSearch =
+        book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        book.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        book.isbn.includes(searchTerm) ||
+        book.bookId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        book.publisher.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory =
+        selectedCategory === 'all' || book.category === selectedCategory;
+      const matchesLanguage =
+        selectedLanguage === 'all' || book.language === selectedLanguage;
+      return matchesSearch && matchesCategory && matchesLanguage;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'title':
+          return a.title.localeCompare(b.title);
+        case 'author':
+          return a.author.localeCompare(b.author);
+        case 'year':
+          return b.year - a.year; // Newest first
+        case 'available':
+          return b.available - a.available; // Most available first
+        case 'category':
+          return a.category.localeCompare(b.category);
+        default:
+          return 0;
+      }
+    });
 
   const stats = {
     totalBooks: books.reduce((sum, b) => sum + b.quantity, 0),
@@ -314,10 +440,10 @@ export default function LibraryModule({ userRole }: LibraryModuleProps) {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
         <button
           onClick={() => setActiveTab('all')}
-          className={`px-6 py-3 font-semibold transition-colors ${
+          className={`px-6 py-3 font-semibold transition-colors whitespace-nowrap ${
             activeTab === 'all'
               ? 'border-b-2 border-amrita-orange text-amrita-orange'
               : 'text-gray-600 dark:text-gray-400 hover:text-amrita-orange'
@@ -326,32 +452,45 @@ export default function LibraryModule({ userRole }: LibraryModuleProps) {
           📚 All Books ({books.length})
         </button>
         {(userRole === 'admin' || userRole === 'teacher') && (
-          <button
-            onClick={() => setActiveTab('borrowed')}
-            className={`px-6 py-3 font-semibold transition-colors ${
-              activeTab === 'borrowed'
-                ? 'border-b-2 border-amrita-orange text-amrita-orange'
-                : 'text-gray-600 dark:text-gray-400 hover:text-amrita-orange'
-            }`}
-          >
-            📖 Borrowed Books ({borrowedBooks.length})
-          </button>
+          <>
+            <button
+              onClick={() => setActiveTab('borrowed')}
+              className={`px-6 py-3 font-semibold transition-colors whitespace-nowrap ${
+                activeTab === 'borrowed'
+                  ? 'border-b-2 border-amrita-orange text-amrita-orange'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-amrita-orange'
+              }`}
+            >
+              📖 Borrowed Books ({borrowedBooks.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('analytics')}
+              className={`px-6 py-3 font-semibold transition-colors whitespace-nowrap ${
+                activeTab === 'analytics'
+                  ? 'border-b-2 border-amrita-orange text-amrita-orange'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-amrita-orange'
+              }`}
+            >
+              📊 Analytics & Reports
+            </button>
+          </>
         )}
       </div>
 
       {/* All Books Tab */}
       {activeTab === 'all' && (
         <>
-          {/* Search and Filter */}
+          {/* Enhanced Search and Filter */}
           <div className="card">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="md:col-span-2">
+            <h3 className="text-lg font-semibold mb-4 text-amrita-orange">🔍 Advanced Search & Filters</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="lg:col-span-2">
                 <label className="block text-sm font-medium mb-2">
-                  🔍 Search Books
+                  Search Books
                 </label>
                 <input
                   type="text"
-                  placeholder="Search by title, author, ISBN, or book ID..."
+                  placeholder="Search by title, author, ISBN, publisher, or book ID..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="input-field"
@@ -359,7 +498,7 @@ export default function LibraryModule({ userRole }: LibraryModuleProps) {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  📂 Filter by Category
+                  📂 Category
                 </label>
                 <select
                   value={selectedCategory}
@@ -373,6 +512,57 @@ export default function LibraryModule({ userRole }: LibraryModuleProps) {
                     </option>
                   ))}
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  🌐 Language
+                </label>
+                <select
+                  value={selectedLanguage}
+                  onChange={(e) => setSelectedLanguage(e.target.value)}
+                  className="input-field"
+                >
+                  <option value="all">All Languages</option>
+                  {languages.map((lang) => (
+                    <option key={lang} value={lang}>
+                      {lang}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-4 items-center">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  📊 Sort By
+                </label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="input-field"
+                >
+                  <option value="title">Title (A-Z)</option>
+                  <option value="author">Author (A-Z)</option>
+                  <option value="year">Year (Newest First)</option>
+                  <option value="available">Availability</option>
+                  <option value="category">Category</option>
+                </select>
+              </div>
+              <div className="flex gap-2 mt-6">
+                <button
+                  onClick={exportBooksToCSV}
+                  className="btn-primary bg-green-600 hover:bg-green-700 flex items-center gap-2"
+                >
+                  📄 Export Books CSV
+                </button>
+                {(userRole === 'admin' || userRole === 'teacher') && (
+                  <button
+                    onClick={exportBorrowedBooksToCSV}
+                    className="btn-primary bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
+                  >
+                    📋 Export Borrowed CSV
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -751,6 +941,179 @@ export default function LibraryModule({ userRole }: LibraryModuleProps) {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Analytics Tab */}
+      {activeTab === 'analytics' && (userRole === 'admin' || userRole === 'teacher') && (
+        <div className="space-y-6">
+          {/* Enhanced Statistics */}
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="card bg-gradient-to-br from-blue-500 to-blue-600 text-white text-center">
+              <h3 className="text-sm font-semibold opacity-90">Total Books</h3>
+              <p className="text-3xl font-bold mt-2">{stats.totalBooks}</p>
+              <p className="text-xs mt-1 opacity-75">All copies</p>
+            </div>
+            <div className="card bg-gradient-to-br from-green-500 to-green-600 text-white text-center">
+              <h3 className="text-sm font-semibold opacity-90">Available</h3>
+              <p className="text-3xl font-bold mt-2">{stats.available}</p>
+              <p className="text-xs mt-1 opacity-75">{((stats.available / stats.totalBooks) * 100).toFixed(1)}% availability</p>
+            </div>
+            <div className="card bg-gradient-to-br from-yellow-500 to-yellow-600 text-white text-center">
+              <h3 className="text-sm font-semibold opacity-90">Borrowed</h3>
+              <p className="text-3xl font-bold mt-2">{stats.borrowed}</p>
+              <p className="text-xs mt-1 opacity-75">{((stats.borrowed / stats.totalBooks) * 100).toFixed(1)}% in use</p>
+            </div>
+            <div className="card bg-gradient-to-br from-purple-500 to-purple-600 text-white text-center">
+              <h3 className="text-sm font-semibold opacity-90">Categories</h3>
+              <p className="text-3xl font-bold mt-2">{stats.categories}</p>
+              <p className="text-xs mt-1 opacity-75">Different types</p>
+            </div>
+            <div className="card bg-gradient-to-br from-red-500 to-red-600 text-white text-center">
+              <h3 className="text-sm font-semibold opacity-90">Overdue</h3>
+              <p className="text-3xl font-bold mt-2">{stats.overdue}</p>
+              <p className="text-xs mt-1 opacity-75">Need attention</p>
+            </div>
+          </div>
+
+          {/* Category Breakdown */}
+          <div className="card">
+            <h3 className="text-lg font-bold mb-4 text-amrita-orange">📊 Category Analysis</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {categories.map((category) => {
+                const categoryBooks = books.filter(book => book.category === category);
+                const totalInCategory = categoryBooks.reduce((sum, book) => sum + book.quantity, 0);
+                const availableInCategory = categoryBooks.reduce((sum, book) => sum + book.available, 0);
+                
+                if (totalInCategory === 0) return null;
+                
+                return (
+                  <div key={category} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                    <h4 className="font-semibold text-lg capitalize">{category}</h4>
+                    <div className="mt-2 space-y-1">
+                      <div className="flex justify-between text-sm">
+                        <span>Total Books:</span>
+                        <span className="font-semibold">{totalInCategory}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Available:</span>
+                        <span className="font-semibold text-green-600">{availableInCategory}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Borrowed:</span>
+                        <span className="font-semibold text-blue-600">{totalInCategory - availableInCategory}</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                        <div 
+                          className="bg-amrita-orange h-2 rounded-full" 
+                          style={{ width: `${(availableInCategory / totalInCategory) * 100}%` }}
+                        ></div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {((availableInCategory / totalInCategory) * 100).toFixed(1)}% available
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Most Popular Books */}
+          <div className="card">
+            <h3 className="text-lg font-bold mb-4 text-amrita-orange">🔥 Most Popular Books</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase">Rank</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase">Book</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase">Author</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase">Category</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase">Times Borrowed</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase">Popularity</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {books
+                    .map(book => ({
+                      ...book,
+                      timesBorrowed: book.quantity - book.available,
+                      popularityScore: ((book.quantity - book.available) / book.quantity) * 100
+                    }))
+                    .sort((a, b) => b.timesBorrowed - a.timesBorrowed)
+                    .slice(0, 10)
+                    .map((book, index) => (
+                      <tr key={book.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <td className="px-4 py-3 font-bold text-amrita-orange">#{index + 1}</td>
+                        <td className="px-4 py-3">
+                          <div>
+                            <p className="font-semibold">{book.title}</p>
+                            <p className="text-xs text-gray-500">{book.bookId}</p>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">{book.author}</td>
+                        <td className="px-4 py-3">
+                          <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-semibold capitalize">
+                            {book.category}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 font-bold">{book.timesBorrowed}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-16 bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-amrita-orange h-2 rounded-full" 
+                                style={{ width: `${book.popularityScore}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-xs font-semibold">{book.popularityScore.toFixed(1)}%</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Recent Activity */}
+          <div className="card">
+            <h3 className="text-lg font-bold mb-4 text-amrita-orange">⏰ Recent Library Activity</h3>
+            <div className="space-y-3">
+              {borrowedBooks
+                .sort((a, b) => new Date(b.borrowDate).getTime() - new Date(a.borrowDate).getTime())
+                .slice(0, 10)
+                .map((borrow) => (
+                  <div key={borrow.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${
+                        borrow.status === 'BORROWED' ? 'bg-blue-500' :
+                        borrow.status === 'RETURNED' ? 'bg-green-500' :
+                        borrow.status === 'OVERDUE' ? 'bg-red-500' : 'bg-gray-500'
+                      }`}></div>
+                      <div>
+                        <p className="font-semibold">{borrow.book.title}</p>
+                        <p className="text-sm text-gray-600">
+                          {borrow.status === 'RETURNED' ? 'Returned' : 'Borrowed'} by {borrow.student.name}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold">
+                        {borrow.status === 'RETURNED' && borrow.returnDate 
+                          ? new Date(borrow.returnDate).toLocaleDateString()
+                          : new Date(borrow.borrowDate).toLocaleDateString()
+                        }
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {borrow.status === 'RETURNED' ? 'Return Date' : 'Borrow Date'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+            </div>
           </div>
         </div>
       )}

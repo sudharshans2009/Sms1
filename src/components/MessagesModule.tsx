@@ -128,9 +128,9 @@ export default function MessagesModule({ currentUser }: MessagesModuleProps) {
 
       const allUsers: User[] = [];
 
-      if (studentsData.students) {
+      if (studentsData.success && studentsData.data) {
         allUsers.push(
-          ...studentsData.students.map((s: any) => ({
+          ...studentsData.data.map((s: any) => ({
             id: s.userId || s.id,
             name: s.name,
             role: 'STUDENT',
@@ -138,9 +138,9 @@ export default function MessagesModule({ currentUser }: MessagesModuleProps) {
         );
       }
 
-      if (teachersData.teachers) {
+      if (teachersData.success && teachersData.data) {
         allUsers.push(
-          ...teachersData.teachers.map((t: any) => ({
+          ...teachersData.data.map((t: any) => ({
             id: t.userId || t.id,
             name: t.name,
             role: 'TEACHER',

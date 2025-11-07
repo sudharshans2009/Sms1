@@ -601,6 +601,25 @@ export default function StudentsModule({ userRole }: StudentsModuleProps) {
                     placeholder="Enter complete address"
                   />
                 </div>
+
+                {/* Bus Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Bus
+                  </label>
+                  <select
+                    value={formData.busId}
+                    onChange={(e) => setFormData({...formData, busId: e.target.value})}
+                    className="input-field"
+                  >
+                    <option value="">No Bus Assigned</option>
+                    {buses.map(bus => (
+                      <option key={bus.id} value={bus.busId}>
+                        {bus.busId} - {bus.driverName} ({bus.route})
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               {/* Form Actions */}
@@ -698,8 +717,19 @@ export default function StudentsModule({ userRole }: StudentsModuleProps) {
                   <input value={editFormData.studentPhone} onChange={(e)=>setEditFormData({...editFormData, studentPhone: e.target.value})} className="input-field" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Bus ID</label>
-                  <input value={editFormData.busId} onChange={(e)=>setEditFormData({...editFormData, busId: e.target.value})} className="input-field" />
+                  <label className="block text-sm font-medium mb-2">Bus</label>
+                  <select
+                    value={editFormData.busId || ''}
+                    onChange={(e) => setEditFormData({...editFormData, busId: e.target.value})}
+                    className="input-field"
+                  >
+                    <option value="">No Bus Assigned</option>
+                    {buses.map(bus => (
+                      <option key={bus.id} value={bus.busId}>
+                        {bus.busId} - {bus.driverName} ({bus.route})
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 

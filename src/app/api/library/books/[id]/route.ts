@@ -4,10 +4,10 @@ import prisma from '@/lib/prisma';
 // DELETE /api/library/books/[id] - Delete a book
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // Check if book exists
     const book = await prisma.book.findUnique({
@@ -58,10 +58,10 @@ export async function DELETE(
 // PUT /api/library/books/[id] - Update a book
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
     const book = await prisma.book.update({

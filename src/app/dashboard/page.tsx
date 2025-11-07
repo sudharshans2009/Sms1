@@ -15,6 +15,7 @@ const BusTrackingModule = dynamic(() => import('@/components/BusTrackingModule')
 const ReportsModule = dynamic(() => import('@/components/ReportsModule'), { ssr: false });
 const AnnouncementsModule = dynamic(() => import('@/components/AnnouncementsModule'), { ssr: false });
 const LibraryModuleEnhanced = dynamic(() => import('@/components/LibraryModule'), { ssr: false });
+const MessagesModuleEnhanced = dynamic(() => import('@/components/MessagesModule'), { ssr: false });
 
 // Placeholder component (no longer needed but keeping for reference)
 const PlaceholderModule = ({ userRole, classes }: any) => (
@@ -33,17 +34,7 @@ const PlaceholderModule = ({ userRole, classes }: any) => (
   </div>
 );
 
-const MessagesModule = ({ userRole }: any) => (
-  <div className="space-y-6">
-    <div className="flex justify-between items-center">
-      <h2 className="text-2xl font-bold">Messages</h2>
-      <button className="btn-primary">Compose Message</button>
-    </div>
-    <div className="card">
-      <p className="text-gray-600 dark:text-gray-400">Messaging system - Communication with parents, teachers, and students</p>
-    </div>
-  </div>
-);
+
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -439,7 +430,7 @@ export default function DashboardPage() {
             )}
 
             {activePage === 'messages' && (
-              <MessagesModule userRole={user.role} />
+              <MessagesModuleEnhanced currentUser={{ id: user.id, name: user.name, role: user.role }} />
             )}
           </div>
         </main>

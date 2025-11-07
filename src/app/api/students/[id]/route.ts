@@ -4,10 +4,10 @@ import prisma from '@/lib/prisma';
 // DELETE /api/students/[id]
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // Check if student exists
     const student = await prisma.student.findUnique({
@@ -42,10 +42,10 @@ export async function DELETE(
 // PUT /api/students/[id] - Update student
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
     // Check if student exists

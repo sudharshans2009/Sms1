@@ -21,7 +21,7 @@
     "@neondatabase/serverless": "^1.0.2",
     "@prisma/client": "^6.19.0",
     "@types/pg": "^8.15.6",
-    "axios": "^1.6.2",
+    "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
     "leaflet": "^1.9.4",
     "next": "^16.0.2-canary.9",

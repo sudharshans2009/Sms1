@@ -4,10 +4,10 @@ import prisma from '@/lib/prisma';
 // PUT /api/library/borrowed/[id]/return - Return a book
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // Get borrow record
     const borrowRecord = await prisma.borrowedBook.findUnique({

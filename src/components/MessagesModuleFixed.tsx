@@ -164,7 +164,7 @@ export default function MessagesModuleFixed({ currentUser }: MessagesModuleFixed
 
       setUsers(allUsers);
       console.log(`✅ Loaded ${allUsers.length} total users for messaging`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Failed to load users:', error);
       // Add some test users as fallback
       setUsers([
@@ -201,7 +201,7 @@ export default function MessagesModuleFixed({ currentUser }: MessagesModuleFixed
         console.error('❌ Failed to load messages:', data.error);
         setMessages([]);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error loading messages:', error);
       setMessages([]);
     } finally {
@@ -274,9 +274,9 @@ export default function MessagesModuleFixed({ currentUser }: MessagesModuleFixed
         console.error('❌ Failed to send message:', data.error);
         alert('Failed to send message: ' + data.error);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error sending message:', error);
-      alert('Failed to send message: ' + error.message);
+      alert('Failed to send message: ' + (error.message || 'Unknown error'));
     }
   };
 

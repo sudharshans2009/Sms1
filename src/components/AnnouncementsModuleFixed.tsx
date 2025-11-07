@@ -44,9 +44,9 @@ export default function AnnouncementsModuleFixed({ userRole, announcements: init
         console.error('❌ Failed to load announcements:', data.error);
         alert('Failed to load announcements: ' + data.error);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error loading announcements:', error);
-      alert('Failed to load announcements: ' + error.message);
+      alert('Failed to load announcements: ' + (error.message || 'Unknown error'));
     } finally {
       setLoading(false);
     }
@@ -114,9 +114,9 @@ export default function AnnouncementsModuleFixed({ userRole, announcements: init
         console.error('❌ Failed to save announcement:', data.error);
         alert('Failed to save announcement: ' + data.error);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error saving announcement:', error);
-      alert('Failed to save announcement: ' + error.message);
+      alert('Failed to save announcement: ' + (error.message || 'Unknown error'));
     }
   };
 
@@ -155,9 +155,9 @@ export default function AnnouncementsModuleFixed({ userRole, announcements: init
         console.error('❌ Failed to delete announcement:', data.error);
         alert('Failed to delete announcement: ' + data.error);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error deleting announcement:', error);
-      alert('Failed to delete announcement: ' + error.message);
+      alert('Failed to delete announcement: ' + (error.message || 'Unknown error'));
     }
   };
 

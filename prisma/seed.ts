@@ -355,42 +355,27 @@ async function main() {
   // Create Buses
   console.log('Creating buses...');
   const buses = [
-    {
-      busId: 'AV01',
-      driverName: 'Ramesh Kumar',
-      route: 'Ettimadai - Coimbatore',
-      currentLat: 10.9027,
-      currentLng: 76.9015,
-      status: 'ACTIVE',
-      speed: 40,
-    },
-    {
-      busId: 'AV02',
-      driverName: 'Suresh Babu',
-      route: 'Ettimadai - Palakkad',
-      currentLat: 10.7827,
-      currentLng: 76.6515,
-      status: 'ACTIVE',
-      speed: 35,
-    },
-    {
-      busId: 'P1',
-      driverName: 'Manoj Kumar',
-      route: 'Ettimadai - Coimbatore',
-      currentLat: 10.8527,
-      currentLng: 76.8015,
-      status: 'ACTIVE',
-      speed: 45,
-    },
-    {
-      busId: 'P2',
-      driverName: 'Vijay Kumar',
-      route: 'Ettimadai - Palakkad',
-      currentLat: 10.7327,
-      currentLng: 76.6015,
-      status: 'ACTIVE',
-      speed: 38,
-    },
+    // AV Buses (AV01 - AV15)
+    { busId: 'AV01', driverName: 'Ramesh Kumar', route: 'Ettimadai - Coimbatore North', currentLat: 10.9027, currentLng: 76.9015, status: 'ACTIVE', speed: 40 },
+    { busId: 'AV02', driverName: 'Suresh Babu', route: 'Ettimadai - Coimbatore South', currentLat: 10.7827, currentLng: 76.6515, status: 'ACTIVE', speed: 35 },
+    { busId: 'AV03', driverName: 'Vijayan Nair', route: 'Ettimadai - Palakkad Route 1', currentLat: 10.7750, currentLng: 76.6540, status: 'ACTIVE', speed: 38 },
+    { busId: 'AV04', driverName: 'Prakash Kumar', route: 'Ettimadai - Palakkad Route 2', currentLat: 10.7800, currentLng: 76.6570, status: 'ACTIVE', speed: 42 },
+    { busId: 'AV05', driverName: 'Rajesh Singh', route: 'Ettimadai - Thrissur', currentLat: 10.5200, currentLng: 76.2100, status: 'ACTIVE', speed: 45 },
+    { busId: 'AV06', driverName: 'Murugan S', route: 'Ettimadai - Pollachi', currentLat: 10.6580, currentLng: 77.0080, status: 'ACTIVE', speed: 40 },
+    { busId: 'AV07', driverName: 'Kumar Swamy', route: 'Ettimadai - Tiruppur', currentLat: 11.1075, currentLng: 77.3410, status: 'ACTIVE', speed: 48 },
+    { busId: 'AV08', driverName: 'Selvam R', route: 'Ettimadai - Erode', currentLat: 11.3410, currentLng: 77.7172, status: 'ACTIVE', speed: 50 },
+    { busId: 'AV09', driverName: 'Ganesan M', route: 'Ettimadai - Salem', currentLat: 11.6643, currentLng: 78.1460, status: 'ACTIVE', speed: 52 },
+    { busId: 'AV10', driverName: 'Karthik P', route: 'Ettimadai - Ooty Route', currentLat: 11.4120, currentLng: 76.6950, status: 'ACTIVE', speed: 35 },
+    { busId: 'AV11', driverName: 'Senthil Kumar', route: 'Ettimadai - Mettupalayam', currentLat: 11.2989, currentLng: 76.9382, status: 'ACTIVE', speed: 38 },
+    { busId: 'AV12', driverName: 'Arjun Das', route: 'Ettimadai - Valparai', currentLat: 10.3270, currentLng: 76.9540, status: 'INACTIVE', speed: 0 },
+    { busId: 'AV13', driverName: 'Dinesh Kumar', route: 'Ettimadai - Udumalpet', currentLat: 10.5871, currentLng: 77.2480, status: 'ACTIVE', speed: 40 },
+    { busId: 'AV14', driverName: 'Ravi Shankar', route: 'Ettimadai - Karur', currentLat: 10.9579, currentLng: 78.0809, status: 'ACTIVE', speed: 45 },
+    { busId: 'AV15', driverName: 'Balaji S', route: 'Ettimadai - Namakkal', currentLat: 11.2189, currentLng: 78.1677, status: 'ACTIVE', speed: 47 },
+    
+    // P Buses (P1 - P3)
+    { busId: 'P1', driverName: 'Manoj Kumar', route: 'Ettimadai - Coimbatore Premium 1', currentLat: 10.8527, currentLng: 76.8015, status: 'ACTIVE', speed: 45 },
+    { busId: 'P2', driverName: 'Vijay Kumar', route: 'Ettimadai - Coimbatore Premium 2', currentLat: 10.7327, currentLng: 76.6015, status: 'ACTIVE', speed: 38 },
+    { busId: 'P3', driverName: 'Anand Raj', route: 'Ettimadai - Palakkad Premium', currentLat: 10.7850, currentLng: 76.6500, status: 'ACTIVE', speed: 42 },
   ];
 
   for (const bus of buses) {
@@ -401,7 +386,7 @@ async function main() {
     });
   }
 
-  console.log('✅ Buses created');
+  console.log('✅ 18 Buses created (AV01-AV15, P1-P3)');
 
   // Create Announcements
   console.log('Creating announcements...');
@@ -434,6 +419,91 @@ async function main() {
 
   console.log('✅ Announcements created');
 
+  // Create Fee Structures
+  console.log('Creating fee structures...');
+  const feeStructures = [
+    {
+      class: '5',
+      section: 'A',
+      academicYear: '2024-2025',
+      tuitionFee: 30000,
+      admissionFee: 5000,
+      examFee: 2000,
+      libraryFee: 1500,
+      sportsFee: 1000,
+      labFee: 1500,
+      busFee: 8000,
+      uniformFee: 3000,
+      otherFee: 2000,
+      totalFee: 54000,
+      installments: 3,
+    },
+    {
+      class: '5',
+      section: 'B',
+      academicYear: '2024-2025',
+      tuitionFee: 30000,
+      admissionFee: 5000,
+      examFee: 2000,
+      libraryFee: 1500,
+      sportsFee: 1000,
+      labFee: 1500,
+      busFee: 8000,
+      uniformFee: 3000,
+      otherFee: 2000,
+      totalFee: 54000,
+      installments: 3,
+    },
+    {
+      class: '11',
+      section: 'A',
+      academicYear: '2024-2025',
+      tuitionFee: 45000,
+      admissionFee: 5000,
+      examFee: 3000,
+      libraryFee: 2000,
+      sportsFee: 1500,
+      labFee: 3000,
+      busFee: 10000,
+      uniformFee: 4000,
+      otherFee: 2500,
+      totalFee: 76000,
+      installments: 3,
+    },
+    {
+      class: '11',
+      section: 'B',
+      academicYear: '2024-2025',
+      tuitionFee: 45000,
+      admissionFee: 5000,
+      examFee: 3000,
+      libraryFee: 2000,
+      sportsFee: 1500,
+      labFee: 3000,
+      busFee: 10000,
+      uniformFee: 4000,
+      otherFee: 2500,
+      totalFee: 76000,
+      installments: 3,
+    },
+  ];
+
+  for (const feeStructure of feeStructures) {
+    await prisma.feeStructure.upsert({
+      where: {
+        class_section_academicYear: {
+          class: feeStructure.class,
+          section: feeStructure.section,
+          academicYear: feeStructure.academicYear,
+        },
+      },
+      update: {},
+      create: feeStructure,
+    });
+  }
+
+  console.log('✅ Fee structures created');
+
   console.log('');
   console.log('🎉 Database seeding completed successfully!');
   console.log('');
@@ -444,8 +514,9 @@ async function main() {
   console.log('   - 8 Library Books');
   console.log('   - 10 Book Categories');
   console.log('   - 4 Classes');
-  console.log('   - 4 Buses');
+  console.log('   - 18 Buses (AV01-AV15, P1-P3)');
   console.log('   - 3 Announcements');
+  console.log('   - 4 Fee Structures');
 }
 
 main()

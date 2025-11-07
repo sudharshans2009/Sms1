@@ -63,10 +63,13 @@ model Student {
   updatedAt    DateTime  @updatedAt
 
   // Relations
-  bus          Bus?          @relation(fields: [busId], references: [id])
+  bus          Bus?             @relation(fields: [busId], references: [id])
   attendance   Attendance[]
   marks        Marks[]
   borrowedBooks BorrowedBook[]
+  feePayments  FeePayment[]
+  medical      StudentMedical?
+  academic     StudentAcademic[]
 
   @@index([studentId])
   @@index([class, section])
@@ -136,8 +139,10 @@ model Bus {
   updatedAt       DateTime  @updatedAt
 
   // Relations
-  driver          Driver?   @relation(fields: [driverId], references: [id])
+  driver          Driver?      @relation(fields: [driverId], references: [id])
   students        Student[]
+  issues          BusIssue[]
+  location        BusLocation?
 
   @@index([busId])
   @@index([driverId])
@@ -478,4 +483,284 @@ model BroadcastMessage {
   @@index([targetClass, targetSection])
   @@index([createdAt])
   @@index([scheduledFor])
+}
+
+// Advanced Fee Management System
+model FeeStructure {
+  id              String   @id @default(cuid())
+  class           String
+  section         String?
+  academicYear    String   // e.g., "2024-2025"
+  
+  // Fee Components (all in INR)
+  tuitionFee      Float    @default(0)
+  admissionFee    Float    @default(0)
+  examFee         Float    @default(0)
+  libraryFee      Float    @default(0)
+  sportsFee       Float    @default(0)
+  labFee          Float    @default(0)
+  busFee          Float    @default(0)
+  uniformFee      Float    @default(0)
+  otherFee        Float    @default(0)
+  
+  // Total and Payment Terms
+  totalFee        Float
+  installments    Int      @default(3) // Number of installments
+  
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  feePayments     FeePayment[]
+  
+  @@unique([class, section, academicYear])
+  @@index([class, section])
+  @@index([academicYear])
+  @@index([isActive])
+}
+
+model FeePayment {
+  id              String         @id @default(cuid())
+  studentId       String
+  student         Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  feeStructureId  String
+  feeStructure    FeeStructure   @relation(fields: [feeStructureId], references: [id])
+  
+  academicYear    String
+  term            String         // Term1, Term2, Term3, Annual
+  
+  // Payment Details
+  amountDue       Float
+  amountPaid      Float          @default(0)
+  amountPending   Float
+  fine            Float          @default(0)
+  discount        Float          @default(0)
+  
+  // Payment Info
+  paymentMethod   PaymentMethod?
+  transactionId   String?
+  receiptNumber   String?        @unique
+  
+  // Status
+  status          PaymentStatus  @default(PENDING)
+  dueDate         DateTime
+  paidDate        DateTime?
+  
+  // Additional Info
+  remarks         String?        @db.Text
+  paidBy          String?        // Parent/Guardian name
+  
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  @@index([studentId])
+  @@index([feeStructureId])
+  @@index([status])
+  @@index([academicYear])
+  @@index([dueDate])
+  @@index([paidDate])
+}
+
+enum PaymentStatus {
+  PENDING
+  PARTIAL
+  PAID
+  OVERDUE
+  WAIVED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  UPI
+  NET_BANKING
+  CHEQUE
+  DEMAND_DRAFT
+}
+
+// Bus Issue Reporting System
+model BusIssue {
+  id              String         @id @default(cuid())
+  busId           String
+  bus             Bus            @relation(fields: [busId], references: [id], onDelete: Cascade)
+  
+  reportedBy      String         // Driver ID
+  reportedByName  String
+  
+  // Issue Details
+  issueType       BusIssueType
+  severity        IssueSeverity  @default(MEDIUM)
+  title           String
+  description     String         @db.Text
+  location        String?
+  
+  // Visibility
+  visibleTo       IssueVisibility @default(ADMIN_ONLY)
+  
+  // Status
+  status          IssueStatus    @default(REPORTED)
+  resolvedBy      String?
+  resolvedAt      DateTime?
+  resolution      String?        @db.Text
+  
+  // Attachments
+  photos          String[]       // Array of image URLs
+  
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  @@index([busId])
+  @@index([reportedBy])
+  @@index([status])
+  @@index([severity])
+  @@index([createdAt])
+}
+
+enum BusIssueType {
+  MECHANICAL
+  ACCIDENT
+  BREAKDOWN
+  MAINTENANCE
+  CLEANLINESS
+  SAFETY
+  ROUTE_CHANGE
+  DELAY
+  OTHER
+}
+
+enum IssueSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum IssueStatus {
+  REPORTED
+  ACKNOWLEDGED
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum IssueVisibility {
+  STUDENTS_ONLY
+  ADMIN_ONLY
+  BOTH
+}
+
+// Live Location Tracking
+model BusLocation {
+  id          String   @id @default(cuid())
+  busId       String   @unique
+  bus         Bus      @relation(fields: [busId], references: [id], onDelete: Cascade)
+  
+  latitude    Float
+  longitude   Float
+  speed       Float    @default(0)
+  heading     Float?   // Direction in degrees
+  accuracy    Float?   // Accuracy in meters
+  
+  // Status
+  isSharing   Boolean  @default(false)
+  lastUpdated DateTime @default(now())
+  
+  // Driver Info
+  driverId    String
+  driverName  String
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([busId])
+  @@index([lastUpdated])
+}
+
+// Student Medical Records
+model StudentMedical {
+  id              String    @id @default(cuid())
+  studentId       String    @unique
+  student         Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  // Medical Info
+  bloodGroup      String?
+  height          Float?    // in cm
+  weight          Float?    // in kg
+  
+  // Health Issues
+  allergies       String[]  // Array of allergies
+  chronicIllness  String[]  // Array of chronic conditions
+  disabilities    String?   @db.Text
+  
+  // Medications
+  currentMedications String[] // Array of current medications
+  pastSurgeries   String[]  // Array of past surgeries
+  
+  // Emergency
+  emergencyContact String
+  emergencyPhone   String
+  emergencyRelation String
+  
+  // Medical History
+  vaccinations    String[]  // Array of vaccinations
+  lastCheckup     DateTime?
+  notes           String?   @db.Text
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([studentId])
+  @@index([bloodGroup])
+}
+
+// Student Academic Performance
+model StudentAcademic {
+  id              String   @id @default(cuid())
+  studentId       String
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  academicYear    String
+  term            String   // Term1, Term2, Term3, Annual
+  
+  // Marks by Subject (JSON)
+  subjects        Json     // { "Math": 95, "Science": 88, ... }
+  totalMarks      Float
+  maxMarks        Float
+  percentage      Float
+  grade           String
+  rank            Int?
+  
+  // Attendance
+  totalDays       Int
+  presentDays     Int
+  absentDays      Int
+  attendancePercentage Float
+  
+  // Status
+  studyStatus     StudyStatus @default(REGULAR)
+  promoted        Boolean  @default(false)
+  
+  // Remarks
+  teacherRemarks  String?  @db.Text
+  principalRemarks String? @db.Text
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@unique([studentId, academicYear, term])
+  @@index([studentId])
+  @@index([academicYear])
+  @@index([percentage])
+  @@index([grade])
+}
+
+enum StudyStatus {
+  REGULAR
+  DETAINED
+  PROMOTED
+  FAILED
+  DROPOUT
+  TRANSFERRED
 }

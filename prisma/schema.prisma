@@ -346,31 +346,136 @@ model BookCategory {
 }
 
 // Messages
+// Advanced Messaging System
 model Message {
-  id          String      @id @default(cuid())
-  subject     String
-  content     String      @db.Text
-  senderId    String
-  senderName  String
-  senderRole  Role
-  receiverId  String
-  receiverName String
-  receiverRole Role
-  isRead      Boolean     @default(false)
-  readAt      DateTime?
-  priority    MessagePriority @default(NORMAL)
+  id              String          @id @default(cuid())
+  subject         String
+  content         String          @db.Text
   
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
+  // Sender Information
+  senderId        String
+  senderName      String
+  senderRole      Role
+  
+  // Receiver Information
+  receiverId      String
+  receiverName    String
+  receiverRole    Role
+  
+  // Message Properties
+  priority        MessagePriority @default(NORMAL)
+  category        MessageCategory @default(GENERAL)
+  isRead          Boolean         @default(false)
+  readAt          DateTime?
+  isStarred       Boolean         @default(false)
+  isArchived      Boolean         @default(false)
+  isDraft         Boolean         @default(false)
+  
+  // Threading
+  threadId        String?
+  replyToId       String?
+  replyTo         Message?        @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies         Message[]       @relation("MessageReplies")
+  
+  // Attachments
+  attachments     MessageAttachment[]
+  
+  // Timestamps
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  scheduledFor    DateTime?
+  
   @@index([senderId])
   @@index([receiverId])
   @@index([isRead])
+  @@index([isStarred])
+  @@index([isArchived])
+  @@index([isDraft])
+  @@index([threadId])
+  @@index([priority])
+  @@index([category])
   @@index([createdAt])
+  @@index([scheduledFor])
 }
 
 enum MessagePriority {
+  LOW
   NORMAL
   IMPORTANT
+  HIGH
   URGENT
+}
+
+enum MessageCategory {
+  GENERAL
+  ACADEMIC
+  ADMINISTRATIVE
+  ATTENDANCE
+  FEES
+  EVENT
+  EMERGENCY
+}
+
+model MessageAttachment {
+  id          String   @id @default(cuid())
+  messageId   String
+  message     Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  
+  fileName    String
+  fileType    String
+  fileSize    Int
+  fileUrl     String
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([messageId])
+}
+
+// Message Templates for quick replies
+model MessageTemplate {
+  id          String          @id @default(cuid())
+  name        String
+  subject     String
+  content     String          @db.Text
+  category    MessageCategory @default(GENERAL)
+  role        Role            // Which role can use this template
+  isActive    Boolean         @default(true)
+  
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  
+  @@index([role])
+  @@index([category])
+}
+
+// Broadcast Messages for sending to multiple users
+model BroadcastMessage {
+  id              String          @id @default(cuid())
+  subject         String
+  content         String          @db.Text
+  
+  senderId        String
+  senderName      String
+  senderRole      Role
+  
+  targetRole      Role?           // Send to all users of this role
+  targetClass     String?         // Send to specific class
+  targetSection   String?         // Send to specific section
+  
+  priority        MessagePriority @default(NORMAL)
+  category        MessageCategory @default(GENERAL)
+  
+  sentCount       Int             @default(0)
+  readCount       Int             @default(0)
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  scheduledFor    DateTime?
+  sentAt          DateTime?
+  
+  @@index([senderId])
+  @@index([targetRole])
+  @@index([targetClass, targetSection])
+  @@index([createdAt])
+  @@index([scheduledFor])
 }

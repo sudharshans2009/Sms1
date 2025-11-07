@@ -38,3 +38,48 @@ export async function DELETE(
     );
   }
 }
+
+// PUT /api/teachers/[id] - Update teacher
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { id } = params;
+    const body = await request.json();
+
+    // Check if teacher exists
+    const existing = await prisma.teacher.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json(
+        { success: false, error: 'Teacher not found' },
+        { status: 404 }
+      );
+    }
+
+    const updateData: any = {};
+    const updatableFields = [
+      'teacherId', 'name', 'subject', 'qualification', 'experience',
+      'phone', 'email', 'address', 'joiningDate'
+    ];
+
+    updatableFields.forEach((f) => {
+      if (body[f] !== undefined) {
+        updateData[f] = f === 'joiningDate' && body[f] ? new Date(body[f]) : body[f];
+      }
+    });
+
+    const updated = await prisma.teacher.update({
+      where: { id },
+      data: updateData,
+    });
+
+    return NextResponse.json({ success: true, data: updated });
+  } catch (error) {
+    console.error('Error updating teacher:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to update teacher' },
+      { status: 500 }
+    );
+  }
+}

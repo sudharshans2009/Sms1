@@ -31,6 +31,11 @@ export default function StudentsModule({ userRole }: StudentsModuleProps) {
   });
   const [formError, setFormError] = useState('');
   const [formLoading, setFormLoading] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editFormData, setEditFormData] = useState<any>(null);
+  const [editFormError, setEditFormError] = useState('');
+  const [editFormLoading, setEditFormLoading] = useState(false);
 
   const classes = ['LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
   const sections = ['A', 'B', 'C', 'D'];
@@ -100,6 +105,59 @@ export default function StudentsModule({ userRole }: StudentsModuleProps) {
     } catch (error: any) {
       console.error('Error deleting student:', error);
       alert(`❌ ${error.response?.data?.error || 'Failed to delete student'}`);
+    }
+  };
+
+  const handleViewStudent = (student: any) => {
+    setSelectedStudent(student);
+  };
+
+  const handleOpenEdit = (student: any) => {
+    setEditFormError('');
+    setEditFormData({
+      studentId: student.studentId,
+      name: student.name,
+      class: student.class,
+      section: student.section,
+      rollNumber: student.rollNumber || '',
+      dateOfBirth: student.dateOfBirth ? new Date(student.dateOfBirth).toISOString().slice(0,10) : '',
+      gender: student.gender || '',
+      parentName: student.parentName || '',
+      parentPhone: student.parentPhone || '',
+      parentEmail: student.parentEmail || '',
+      address: student.address || '',
+      bloodGroup: student.bloodGroup || '',
+      studentPhone: student.studentPhone || '',
+      studentEmail: student.studentEmail || '',
+      busId: student.busId || student.bus || null,
+      id: student.id,
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditStudent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEditFormError('');
+    setEditFormLoading(true);
+
+    try {
+      const id = editFormData.id;
+      const payload = { ...editFormData };
+      delete payload.id;
+
+      const response = await axios.put(`/api/students/${id}`, payload);
+      if (response.data.success) {
+        // update students list in-place
+        setStudents((prev) => prev.map(s => s.id === id ? response.data.data : s));
+        setShowEditModal(false);
+        alert('Student updated successfully!');
+      } else {
+        setEditFormError(response.data.error || 'Failed to update student');
+      }
+    } catch (error: any) {
+      setEditFormError(error.response?.data?.error || 'Failed to update student');
+    } finally {
+      setEditFormLoading(false);
     }
   };
 
@@ -275,10 +333,10 @@ export default function StudentsModule({ userRole }: StudentsModuleProps) {
                       )}
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{student.bus || '-'}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-                        <button className="text-blue-600 hover:text-blue-800">View</button>
+                        <button onClick={() => handleViewStudent(student)} className="text-blue-600 hover:text-blue-800">View</button>
                         {(userRole === 'admin' || userRole === 'teacher') && (
                           <>
-                            <button className="text-green-600 hover:text-green-800">Edit</button>
+                            <button onClick={() => handleOpenEdit(student)} className="text-green-600 hover:text-green-800">Edit</button>
                             {userRole === 'admin' && (
                               <button 
                                 onClick={() => handleDeleteStudent(student.id, student.name)}
@@ -544,6 +602,93 @@ export default function StudentsModule({ userRole }: StudentsModuleProps) {
                 >
                   Cancel
                 </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* View Student Modal */}
+      {selectedStudent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6 flex justify-between items-center border-b">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Student Details</h3>
+              <button onClick={() => setSelectedStudent(null)} className="text-gray-500">×</button>
+            </div>
+            <div className="p-6 space-y-3">
+              <p><strong>ID:</strong> {selectedStudent.studentId}</p>
+              <p><strong>Name:</strong> {selectedStudent.name}</p>
+              <p><strong>Class:</strong> {selectedStudent.class} - {selectedStudent.section}</p>
+              <p><strong>Roll Number:</strong> {selectedStudent.rollNumber || '-'}</p>
+              <p><strong>Date of Birth:</strong> {selectedStudent.dateOfBirth ? new Date(selectedStudent.dateOfBirth).toLocaleDateString() : '-'}</p>
+              <p><strong>Gender:</strong> {selectedStudent.gender || '-'}</p>
+              <p><strong>Parent:</strong> {selectedStudent.parentName || '-'} ({selectedStudent.parentPhone || '-'})</p>
+              <p><strong>Address:</strong> {selectedStudent.address || '-'}</p>
+              <p><strong>Bus:</strong> {selectedStudent.bus || selectedStudent.busId || '-'}</p>
+            </div>
+            <div className="p-6 flex gap-3">
+              <button onClick={() => { setSelectedStudent(null); handleOpenEdit(selectedStudent); }} className="btn-primary">Edit</button>
+              <button onClick={() => setSelectedStudent(null)} className="btn-secondary">Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Student Modal */}
+      {showEditModal && editFormData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6 flex justify-between items-center border-b">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Edit Student</h3>
+              <button onClick={() => setShowEditModal(false)} className="text-gray-500">×</button>
+            </div>
+            <form onSubmit={handleEditStudent} className="p-6 space-y-4">
+              {editFormError && <div className="text-sm text-red-600">{editFormError}</div>}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Student ID</label>
+                  <input value={editFormData.studentId} onChange={(e)=>setEditFormData({...editFormData, studentId: e.target.value})} className="input-field" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Full Name</label>
+                  <input value={editFormData.name} onChange={(e)=>setEditFormData({...editFormData, name: e.target.value})} className="input-field" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Class</label>
+                  <select value={editFormData.class} onChange={(e)=>setEditFormData({...editFormData, class: e.target.value})} className="input-field">
+                    <option value="">Select Class</option>
+                    {classes.map(c=> <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Section</label>
+                  <select value={editFormData.section} onChange={(e)=>setEditFormData({...editFormData, section: e.target.value})} className="input-field">
+                    <option value="">Select Section</option>
+                    {sections.map(s=> <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Parent Phone</label>
+                  <input value={editFormData.parentPhone} onChange={(e)=>setEditFormData({...editFormData, parentPhone: e.target.value})} className="input-field" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Parent Email</label>
+                  <input value={editFormData.parentEmail} onChange={(e)=>setEditFormData({...editFormData, parentEmail: e.target.value})} className="input-field" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Student Phone</label>
+                  <input value={editFormData.studentPhone} onChange={(e)=>setEditFormData({...editFormData, studentPhone: e.target.value})} className="input-field" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Bus ID</label>
+                  <input value={editFormData.busId} onChange={(e)=>setEditFormData({...editFormData, busId: e.target.value})} className="input-field" />
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button type="submit" disabled={editFormLoading} className="btn-primary">Save Changes</button>
+                <button type="button" onClick={()=>setShowEditModal(false)} className="btn-secondary">Cancel</button>
               </div>
             </form>
           </div>

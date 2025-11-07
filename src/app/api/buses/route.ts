@@ -17,6 +17,31 @@ function simulateLocationUpdate(bus: any) {
   };
 }
 
+// Helper to adapt Prisma Bus -> frontend shape expected by components
+function adaptBusForClient(bus: any) {
+  if (!bus) return null;
+
+  const currentLat = bus.currentLat ?? bus.currentLocation?.lat ?? 10.9027;
+  const currentLng = bus.currentLng ?? bus.currentLocation?.lng ?? 76.9015;
+
+  return {
+    // Frontend expects `id` to be the human-readable bus id (e.g., AV01)
+    id: bus.busId || bus.id,
+    internalId: bus.id,
+    busId: bus.busId || bus.id,
+    driverName: bus.driverName,
+    route: bus.route,
+    currentLocation: { lat: currentLat, lng: currentLng },
+    speed: bus.speed ?? 0,
+    // If students relation was included, return count; otherwise 0
+    students: Array.isArray(bus.students) ? bus.students.length : 0,
+    // Normalize status to a human friendly string
+    status: (bus.status === 'ACTIVE') ? 'Active' : 'Inactive',
+    lastUpdate: bus.lastUpdate,
+    driver: bus.driver || null,
+  };
+}
+
 // GET /api/buses
 export async function GET(request: NextRequest) {
   try {
@@ -27,7 +52,7 @@ export async function GET(request: NextRequest) {
     if (busId) {
       let bus = await prisma.bus.findUnique({
         where: { busId: busId },
-        include: { driver: true },
+        include: { driver: true, students: true },
       });
       
       if (!bus) {
@@ -39,14 +64,14 @@ export async function GET(request: NextRequest) {
       
       // Simulate location update for active buses
       if (realtime && bus.status === 'ACTIVE') {
-        bus = simulateLocationUpdate(bus);
+        bus = simulateLocationUpdate(bus as any) as any;
       }
       
-      return NextResponse.json({ success: true, data: bus });
+      return NextResponse.json({ success: true, data: adaptBusForClient(bus) });
     }
 
     let buses = await prisma.bus.findMany({
-      include: { driver: true },
+      include: { driver: true, students: true },
       orderBy: { busId: 'asc' },
     });
     
@@ -56,10 +81,12 @@ export async function GET(request: NextRequest) {
         bus.status === 'ACTIVE' ? simulateLocationUpdate(bus) : bus
       );
     }
+
+    const adapted = buses.map((b: any) => adaptBusForClient(b));
     
     return NextResponse.json({ 
       success: true, 
-      data: buses,
+      data: adapted,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
@@ -109,12 +136,12 @@ export async function PUT(request: NextRequest) {
     const bus = await prisma.bus.update({
       where: { busId: id },
       data: updateData,
-      include: { driver: true },
+      include: { driver: true, students: true },
     });
 
     return NextResponse.json({ 
       success: true, 
-      data: bus,
+      data: adaptBusForClient(bus),
       message: 'Bus updated successfully',
     });
   } catch (error) {
@@ -163,12 +190,12 @@ export async function POST(request: NextRequest) {
         status: 'INACTIVE',
         lastUpdate: new Date(),
       },
-      include: { driver: true },
+      include: { driver: true, students: true },
     });
 
     return NextResponse.json({ 
       success: true, 
-      data: newBus,
+      data: adaptBusForClient(newBus),
       message: 'Bus added successfully',
     }, { status: 201 });
   } catch (error) {
@@ -196,7 +223,6 @@ export async function DELETE(request: NextRequest) {
     await prisma.bus.delete({
       where: { busId: busId },
     });
-
     return NextResponse.json({ 
       success: true, 
       message: 'Bus deleted successfully',

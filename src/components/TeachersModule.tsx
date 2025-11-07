@@ -25,6 +25,11 @@ export default function TeachersModule({ userRole }: TeachersModuleProps) {
   });
   const [formError, setFormError] = useState('');
   const [formLoading, setFormLoading] = useState(false);
+  const [selectedTeacher, setSelectedTeacher] = useState<any | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editFormData, setEditFormData] = useState<any>(null);
+  const [editFormError, setEditFormError] = useState('');
+  const [editFormLoading, setEditFormLoading] = useState(false);
 
   useEffect(() => {
     loadTeachers();
@@ -88,6 +93,52 @@ export default function TeachersModule({ userRole }: TeachersModuleProps) {
     } catch (error: any) {
       console.error('Error deleting teacher:', error);
       alert(`❌ ${error.response?.data?.error || 'Failed to delete teacher'}`);
+    }
+  };
+
+  const handleViewTeacher = (teacher: any) => {
+    setSelectedTeacher(teacher);
+  };
+
+  const handleOpenEdit = (teacher: any) => {
+    setEditFormError('');
+    setEditFormData({
+      teacherId: teacher.teacherId,
+      name: teacher.name,
+      subject: teacher.subject || '',
+      qualification: teacher.qualification || '',
+      experience: teacher.experience || '',
+      phone: teacher.phone || '',
+      email: teacher.email || '',
+      address: teacher.address || '',
+      joiningDate: teacher.joiningDate ? new Date(teacher.joiningDate).toISOString().slice(0, 10) : '',
+      id: teacher.id,
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditTeacher = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEditFormError('');
+    setEditFormLoading(true);
+
+    try {
+      const id = editFormData.id;
+      const payload = { ...editFormData };
+      delete payload.id;
+
+      const response = await axios.put(`/api/teachers/${id}`, payload);
+      if (response.data.success) {
+        setTeachers((prev) => prev.map(t => t.id === id ? response.data.data : t));
+        setShowEditModal(false);
+        alert('Teacher updated successfully!');
+      } else {
+        setEditFormError(response.data.error || 'Failed to update teacher');
+      }
+    } catch (error: any) {
+      setEditFormError(error.response?.data?.error || 'Failed to update teacher');
+    } finally {
+      setEditFormLoading(false);
     }
   };
 
@@ -172,10 +223,10 @@ export default function TeachersModule({ userRole }: TeachersModuleProps) {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{teacher.phone || '-'}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{teacher.email || '-'}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-                        <button className="text-blue-600 hover:text-blue-800">View</button>
+                        <button onClick={() => handleViewTeacher(teacher)} className="text-blue-600 hover:text-blue-800">View</button>
                         {userRole === 'admin' && (
                           <>
-                            <button className="text-green-600 hover:text-green-800">Edit</button>
+                            <button onClick={() => handleOpenEdit(teacher)} className="text-green-600 hover:text-green-800">Edit</button>
                             <button 
                               onClick={() => handleDeleteTeacher(teacher.id, teacher.name)}
                               className="text-red-600 hover:text-red-800"
@@ -366,6 +417,93 @@ export default function TeachersModule({ userRole }: TeachersModuleProps) {
                 >
                   Cancel
                 </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* View Teacher Modal */}
+      {selectedTeacher && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6 flex justify-between items-center border-b">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Teacher Details</h3>
+              <button onClick={() => setSelectedTeacher(null)} className="text-gray-500 text-2xl">×</button>
+            </div>
+            <div className="p-6 space-y-3">
+              <p><strong>ID:</strong> {selectedTeacher.teacherId}</p>
+              <p><strong>Name:</strong> {selectedTeacher.name}</p>
+              <p><strong>Subject:</strong> {selectedTeacher.subject || '-'}</p>
+              <p><strong>Qualification:</strong> {selectedTeacher.qualification || '-'}</p>
+              <p><strong>Experience:</strong> {selectedTeacher.experience || '-'}</p>
+              <p><strong>Phone:</strong> {selectedTeacher.phone || '-'}</p>
+              <p><strong>Email:</strong> {selectedTeacher.email || '-'}</p>
+              <p><strong>Joining Date:</strong> {selectedTeacher.joiningDate ? new Date(selectedTeacher.joiningDate).toLocaleDateString() : '-'}</p>
+              <p><strong>Address:</strong> {selectedTeacher.address || '-'}</p>
+            </div>
+            <div className="p-6 flex gap-3">
+              {userRole === 'admin' && (
+                <button onClick={() => { setSelectedTeacher(null); handleOpenEdit(selectedTeacher); }} className="btn-primary">Edit</button>
+              )}
+              <button onClick={() => setSelectedTeacher(null)} className="btn-secondary">Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Teacher Modal */}
+      {showEditModal && editFormData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6 flex justify-between items-center border-b">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Edit Teacher</h3>
+              <button onClick={() => setShowEditModal(false)} className="text-gray-500 text-2xl">×</button>
+            </div>
+            <form onSubmit={handleEditTeacher} className="p-6 space-y-4">
+              {editFormError && <div className="text-sm text-red-600 p-3 bg-red-50 dark:bg-red-900/30 rounded">{editFormError}</div>}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Teacher ID</label>
+                  <input value={editFormData.teacherId} onChange={(e)=>setEditFormData({...editFormData, teacherId: e.target.value})} className="input-field" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Full Name</label>
+                  <input value={editFormData.name} onChange={(e)=>setEditFormData({...editFormData, name: e.target.value})} className="input-field" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Subject</label>
+                  <input value={editFormData.subject} onChange={(e)=>setEditFormData({...editFormData, subject: e.target.value})} className="input-field" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Qualification</label>
+                  <input value={editFormData.qualification} onChange={(e)=>setEditFormData({...editFormData, qualification: e.target.value})} className="input-field" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Experience</label>
+                  <input value={editFormData.experience} onChange={(e)=>setEditFormData({...editFormData, experience: e.target.value})} className="input-field" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Phone</label>
+                  <input value={editFormData.phone} onChange={(e)=>setEditFormData({...editFormData, phone: e.target.value})} className="input-field" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Email</label>
+                  <input value={editFormData.email} onChange={(e)=>setEditFormData({...editFormData, email: e.target.value})} className="input-field" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Joining Date</label>
+                  <input type="date" value={editFormData.joiningDate} onChange={(e)=>setEditFormData({...editFormData, joiningDate: e.target.value})} className="input-field" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium mb-2">Address</label>
+                  <textarea value={editFormData.address} onChange={(e)=>setEditFormData({...editFormData, address: e.target.value})} className="input-field" rows={3} />
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button type="submit" disabled={editFormLoading} className="btn-primary">Save Changes</button>
+                <button type="button" onClick={()=>setShowEditModal(false)} className="btn-secondary">Cancel</button>
               </div>
             </form>
           </div>

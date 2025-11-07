@@ -110,6 +110,61 @@ async function main() {
 
   console.log('✅ Students created');
 
+  // Create Teachers
+  console.log('Creating teachers...');
+  const teachers = [
+    {
+      teacherId: 'T001',
+      name: 'Jane Davis',
+      subject: 'Mathematics',
+      qualification: 'M.Sc Mathematics, B.Ed',
+      experience: '10 years',
+      phone: '+1234567800',
+      email: 'jane.davis@amrita.edu',
+      joiningDate: new Date('2015-06-01'),
+    },
+    {
+      teacherId: 'T002',
+      name: 'Robert Miller',
+      subject: 'Science',
+      qualification: 'M.Sc Physics, B.Ed',
+      experience: '8 years',
+      phone: '+1234567801',
+      email: 'robert.miller@amrita.edu',
+      joiningDate: new Date('2017-07-15'),
+    },
+    {
+      teacherId: 'T003',
+      name: 'Emily Wilson',
+      subject: 'English',
+      qualification: 'M.A English, B.Ed',
+      experience: '12 years',
+      phone: '+1234567802',
+      email: 'emily.wilson@amrita.edu',
+      joiningDate: new Date('2013-04-10'),
+    },
+    {
+      teacherId: 'T004',
+      name: 'Sarah Johnson',
+      subject: 'History',
+      qualification: 'M.A History, B.Ed',
+      experience: '6 years',
+      phone: '+1234567803',
+      email: 'sarah.johnson@amrita.edu',
+      joiningDate: new Date('2019-08-20'),
+    },
+  ];
+
+  for (const teacher of teachers) {
+    await prisma.teacher.upsert({
+      where: { teacherId: teacher.teacherId },
+      update: {},
+      create: teacher,
+    });
+  }
+
+  console.log('✅ Teachers created');
+
   // Create Books
   console.log('Creating library books...');
   const books = [
@@ -385,6 +440,7 @@ async function main() {
   console.log('📚 Created:');
   console.log('   - 4 Users (admin, teacher, student, driver)');
   console.log('   - 4 Students');
+  console.log('   - 4 Teachers');
   console.log('   - 8 Library Books');
   console.log('   - 10 Book Categories');
   console.log('   - 4 Classes');

@@ -8,24 +8,26 @@ const testMessaging = async () => {
     console.log('1️⃣ Fetching users...');
     const studentsRes = await fetch(`${baseURL}/api/students`);
     const studentsData = await studentsRes.json();
-    console.log(`✅ Found ${studentsData.students?.length || 0} students`);
+    const students = studentsData.data || studentsData.students || [];
+    console.log(`✅ Found ${students.length} students`);
 
     const teachersRes = await fetch(`${baseURL}/api/teachers`);
     const teachersData = await teachersRes.json();
-    console.log(`✅ Found ${teachersData.teachers?.length || 0} teachers\n`);
+    const teachers = teachersData.data || teachersData.teachers || [];
+    console.log(`✅ Found ${teachers.length} teachers\n`);
 
-    if (!studentsData.students || studentsData.students.length === 0) {
+    if (students.length === 0) {
       console.log('⚠️  No students found, skipping message tests');
       return;
     }
 
-    if (!teachersData.teachers || teachersData.teachers.length === 0) {
+    if (teachers.length === 0) {
       console.log('⚠️  No teachers found, skipping message tests');
       return;
     }
 
-    const student = studentsData.students[0];
-    const teacher = teachersData.teachers[0];
+    const student = students[0];
+    const teacher = teachers[0];
 
     // Test 2: Send a message from teacher to student
     console.log('2️⃣ Sending message from teacher to student...');

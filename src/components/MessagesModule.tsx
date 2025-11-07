@@ -12,10 +12,26 @@ interface Message {
   receiverId: string;
   receiverName: string;
   receiverRole: string;
+  priority: 'LOW' | 'NORMAL' | 'IMPORTANT' | 'HIGH' | 'URGENT';
+  category: string;
   isRead: boolean;
-  readAt?: string;
-  priority: 'NORMAL' | 'IMPORTANT' | 'URGENT';
+  readAt: string | null;
+  isStarred: boolean;
+  isArchived: boolean;
+  isDraft: boolean;
+  threadId: string | null;
+  replyToId: string | null;
   createdAt: string;
+  updatedAt: string;
+  replyTo?: {
+    id: string;
+    subject: string;
+    senderName: string;
+  } | null;
+  _count?: {
+    replies: number;
+  };
+  attachments?: any[];
 }
 
 interface User {
@@ -34,126 +50,153 @@ interface MessagesModuleProps {
 
 export default function MessagesModule({ currentUser }: MessagesModuleProps) {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'received' | 'sent'>('received');
-  const [showCompose, setShowCompose] = useState(false);
+  const [activeTab, setActiveTab] = useState<'received' | 'sent' | 'starred' | 'archived' | 'drafts'>('received');
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+  const [showCompose, setShowCompose] = useState(false);
+  const [showMessageDetail, setShowMessageDetail] = useState(false);
+  const [counts, setCounts] = useState({
+    received: 0,
+    sent: 0,
+    starred: 0,
+    archived: 0,
+    drafts: 0,
+    unread: 0,
+  });
+
+  // Filters
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterCategory, setFilterCategory] = useState<string>('');
+  const [filterPriority, setFilterPriority] = useState<string>('');
+  const [showUnreadOnly, setShowUnreadOnly] = useState(false);
+
+  // Users for recipient selection
   const [users, setUsers] = useState<User[]>([]);
-  
-  // Form state
-  const [formData, setFormData] = useState({
+
+  // Compose form
+  const [composeForm, setComposeForm] = useState({
+    subject: '',
+    content: '',
     receiverId: '',
     receiverName: '',
     receiverRole: '',
-    subject: '',
-    content: '',
-    priority: 'NORMAL' as 'NORMAL' | 'IMPORTANT' | 'URGENT',
+    priority: 'NORMAL' as Message['priority'],
+    category: 'GENERAL',
+    isDraft: false,
+    replyToId: null as string | null,
   });
 
-  // Fetch messages
-  const fetchMessages = async () => {
+  // Load messages
+  const loadMessages = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        `/api/messages?userId=${currentUser.id}&type=${activeTab}`
-      );
+      const params = new URLSearchParams({
+        userId: currentUser.id,
+        type: activeTab,
+        ...(searchQuery && { search: searchQuery }),
+        ...(filterCategory && { category: filterCategory }),
+        ...(filterPriority && { priority: filterPriority }),
+        ...(showUnreadOnly && activeTab === 'received' && { unreadOnly: 'true' }),
+      });
+
+      const response = await fetch(`/api/messages?${params}`);
       const data = await response.json();
-      
-      if (data.messages) {
+
+      if (data.success) {
         setMessages(data.messages);
-        if (activeTab === 'received') {
-          setUnreadCount(data.unreadCount || 0);
-        }
+        setCounts(data.counts);
       }
     } catch (error) {
-      console.error('Error fetching messages:', error);
+      console.error('Failed to load messages:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch users for recipient selection
-  const fetchUsers = async () => {
+  // Load users for recipient selection
+  const loadUsers = async () => {
     try {
       const [studentsRes, teachersRes] = await Promise.all([
         fetch('/api/students'),
         fetch('/api/teachers'),
       ]);
-      
-      const studentsData = await studentsRes.json();
-      const teachersData = await teachersRes.json();
-      
-      const allUsers: User[] = [
-        ...(studentsData.students || []).map((s: any) => ({
-          id: s.userId || s.id,
-          name: s.name,
-          role: 'STUDENT',
-        })),
-        ...(teachersData.teachers || []).map((t: any) => ({
-          id: t.userId || t.id,
-          name: t.name,
-          role: 'TEACHER',
-        })),
-      ];
-      
+
+      const [studentsData, teachersData] = await Promise.all([
+        studentsRes.json(),
+        teachersRes.json(),
+      ]);
+
+      const allUsers: User[] = [];
+
+      if (studentsData.students) {
+        allUsers.push(
+          ...studentsData.students.map((s: any) => ({
+            id: s.userId || s.id,
+            name: s.name,
+            role: 'STUDENT',
+          }))
+        );
+      }
+
+      if (teachersData.teachers) {
+        allUsers.push(
+          ...teachersData.teachers.map((t: any) => ({
+            id: t.userId || t.id,
+            name: t.name,
+            role: 'TEACHER',
+          }))
+        );
+      }
+
       setUsers(allUsers);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error('Failed to load users:', error);
     }
   };
 
   useEffect(() => {
-    fetchMessages();
-  }, [activeTab]);
+    loadMessages();
+  }, [activeTab, searchQuery, filterCategory, filterPriority, showUnreadOnly]);
 
   useEffect(() => {
-    fetchUsers();
+    loadUsers();
   }, []);
 
   // Send message
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSendMessage = async (isDraft = false) => {
     try {
       const response = await fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...formData,
+          ...composeForm,
           senderId: currentUser.id,
           senderName: currentUser.name,
           senderRole: currentUser.role,
+          isDraft,
         }),
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
-        alert('Message sent successfully!');
+        alert(isDraft ? 'Draft saved successfully!' : 'Message sent successfully!');
         setShowCompose(false);
-        setFormData({
-          receiverId: '',
-          receiverName: '',
-          receiverRole: '',
-          subject: '',
-          content: '',
-          priority: 'NORMAL',
-        });
-        fetchMessages();
+        resetComposeForm();
+        loadMessages();
       } else {
-        alert('Failed to send message');
+        alert('Failed to send message: ' + data.error);
       }
     } catch (error) {
-      console.error('Error sending message:', error);
-      alert('Error sending message');
+      console.error('Failed to send message:', error);
+      alert('Failed to send message');
     }
   };
 
-  // Mark message as read
+  // Mark as read
   const markAsRead = async (messageId: string) => {
     try {
-      await fetch('/api/messages', {
+      const response = await fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -161,134 +204,400 @@ export default function MessagesModule({ currentUser }: MessagesModuleProps) {
           messageId,
         }),
       });
-      
-      fetchMessages();
+
+      const data = await response.json();
+
+      if (data.success) {
+        loadMessages();
+      }
     } catch (error) {
-      console.error('Error marking message as read:', error);
+      console.error('Failed to mark as read:', error);
+    }
+  };
+
+  // Toggle star
+  const toggleStar = async (messageId: string) => {
+    try {
+      const response = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'toggleStar',
+          messageId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        loadMessages();
+        if (selectedMessage?.id === messageId) {
+          setSelectedMessage(data.message);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to toggle star:', error);
+    }
+  };
+
+  // Toggle archive
+  const toggleArchive = async (messageId: string) => {
+    try {
+      const response = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'toggleArchive',
+          messageId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        loadMessages();
+        if (selectedMessage?.id === messageId) {
+          setShowMessageDetail(false);
+          setSelectedMessage(null);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to toggle archive:', error);
     }
   };
 
   // Delete message
-  const handleDeleteMessage = async (messageId: string) => {
+  const deleteMessage = async (messageId: string) => {
     if (!confirm('Are you sure you want to delete this message?')) return;
-    
+
     try {
       const response = await fetch(`/api/messages?messageId=${messageId}`, {
         method: 'DELETE',
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
         alert('Message deleted successfully!');
+        setShowMessageDetail(false);
         setSelectedMessage(null);
-        fetchMessages();
-      } else {
-        alert('Failed to delete message');
+        loadMessages();
       }
     } catch (error) {
-      console.error('Error deleting message:', error);
-      alert('Error deleting message');
+      console.error('Failed to delete message:', error);
+      alert('Failed to delete message');
     }
   };
 
-  // Handle recipient selection
-  const handleRecipientChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const userId = e.target.value;
-    const user = users.find(u => u.id === userId);
-    
-    if (user) {
-      setFormData({
-        ...formData,
-        receiverId: user.id,
-        receiverName: user.name,
-        receiverRole: user.role,
-      });
+  // Open message
+  const openMessage = async (message: Message) => {
+    setSelectedMessage(message);
+    setShowMessageDetail(true);
+
+    // Mark as read if received and unread
+    if (activeTab === 'received' && !message.isRead) {
+      await markAsRead(message.id);
     }
   };
 
-  // Priority badge color
+  // Reply to message
+  const replyToMessage = (message: Message) => {
+    setComposeForm({
+      subject: message.subject.startsWith('RE:') ? message.subject : `RE: ${message.subject}`,
+      content: `\n\n--- Original Message ---\nFrom: ${message.senderName}\nDate: ${new Date(message.createdAt).toLocaleString()}\n\n${message.content}`,
+      receiverId: message.senderId,
+      receiverName: message.senderName,
+      receiverRole: message.senderRole,
+      priority: 'NORMAL',
+      category: message.category,
+      isDraft: false,
+      replyToId: message.id,
+    });
+    setShowMessageDetail(false);
+    setShowCompose(true);
+  };
+
+  // Reset compose form
+  const resetComposeForm = () => {
+    setComposeForm({
+      subject: '',
+      content: '',
+      receiverId: '',
+      receiverName: '',
+      receiverRole: '',
+      priority: 'NORMAL',
+      category: 'GENERAL',
+      isDraft: false,
+      replyToId: null,
+    });
+  };
+
+  // Get priority badge color
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'URGENT':
         return 'bg-red-100 text-red-800';
-      case 'IMPORTANT':
+      case 'HIGH':
         return 'bg-orange-100 text-orange-800';
+      case 'IMPORTANT':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'NORMAL':
+        return 'bg-blue-100 text-blue-800';
+      case 'LOW':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Get category badge color
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'EMERGENCY':
+        return 'bg-red-100 text-red-800';
+      case 'ACADEMIC':
+        return 'bg-blue-100 text-blue-800';
+      case 'ADMINISTRATIVE':
+        return 'bg-purple-100 text-purple-800';
+      case 'ATTENDANCE':
+        return 'bg-green-100 text-green-800';
+      case 'FEES':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'EVENT':
+        return 'bg-pink-100 text-pink-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Messages</h2>
-          {unreadCount > 0 && activeTab === 'received' && (
-            <span className="text-sm text-red-600 dark:text-red-400 font-semibold">
-              {unreadCount} unread message{unreadCount > 1 ? 's' : ''}
-            </span>
-          )}
-        </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-800">Messages</h2>
         <button
-          onClick={() => setShowCompose(true)}
-          className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+          onClick={() => {
+            resetComposeForm();
+            setShowCompose(true);
+          }}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
         >
-          ✉️ Compose Message
+          <span>✉️</span>
+          Compose
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-4 mb-6 border-b border-gray-200 dark:border-gray-700">
-        <button
-          onClick={() => setActiveTab('received')}
-          className={`pb-2 px-4 font-semibold transition-colors ${
-            activeTab === 'received'
-              ? 'border-b-2 border-blue-600 text-blue-600 dark:text-blue-400'
-              : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400'
-          }`}
-        >
-          📥 Inbox
-        </button>
-        <button
-          onClick={() => setActiveTab('sent')}
-          className={`pb-2 px-4 font-semibold transition-colors ${
-            activeTab === 'sent'
-              ? 'border-b-2 border-blue-600 text-blue-600 dark:text-blue-400'
-              : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400'
-          }`}
-        >
-          📤 Sent
-        </button>
+      <div className="flex gap-2 border-b border-gray-200 overflow-x-auto">
+        {[
+          { key: 'received', label: '📥 Inbox', count: counts.received },
+          { key: 'sent', label: '📤 Sent', count: counts.sent },
+          { key: 'starred', label: '⭐ Starred', count: counts.starred },
+          { key: 'drafts', label: '📝 Drafts', count: counts.drafts },
+          { key: 'archived', label: '📦 Archived', count: counts.archived },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key as any)}
+            className={`px-4 py-2 font-medium whitespace-nowrap transition-colors ${
+              activeTab === tab.key
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            {tab.label}
+            {tab.count > 0 && (
+              <span className="ml-2 px-2 py-0.5 text-xs bg-gray-200 rounded-full">
+                {tab.count}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Unread Badge */}
+      {counts.unread > 0 && activeTab === 'received' && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center gap-2">
+          <span className="text-2xl">📬</span>
+          <span className="text-blue-800 font-medium">
+            You have {counts.unread} unread message{counts.unread !== 1 ? 's' : ''}
+          </span>
+        </div>
+      )}
+
+      {/* Filters */}
+      <div className="bg-white rounded-lg shadow-sm p-4 space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* Search */}
+          <div className="md:col-span-2">
+            <input
+              type="text"
+              placeholder="🔍 Search messages..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Category Filter */}
+          <select
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">All Categories</option>
+            <option value="GENERAL">General</option>
+            <option value="ACADEMIC">Academic</option>
+            <option value="ADMINISTRATIVE">Administrative</option>
+            <option value="ATTENDANCE">Attendance</option>
+            <option value="FEES">Fees</option>
+            <option value="EVENT">Event</option>
+            <option value="EMERGENCY">Emergency</option>
+          </select>
+
+          {/* Priority Filter */}
+          <select
+            value={filterPriority}
+            onChange={(e) => setFilterPriority(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">All Priorities</option>
+            <option value="LOW">Low</option>
+            <option value="NORMAL">Normal</option>
+            <option value="IMPORTANT">Important</option>
+            <option value="HIGH">High</option>
+            <option value="URGENT">Urgent</option>
+          </select>
+        </div>
+
+        {/* Unread Only Toggle */}
+        {activeTab === 'received' && (
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showUnreadOnly}
+              onChange={(e) => setShowUnreadOnly(e.target.checked)}
+              className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+            />
+            <span className="text-gray-700">Show unread only</span>
+          </label>
+        )}
+      </div>
+
+      {/* Messages List */}
+      <div className="bg-white rounded-lg shadow-sm">
+        {loading ? (
+          <div className="p-8 text-center text-gray-500">Loading messages...</div>
+        ) : messages.length === 0 ? (
+          <div className="p-8 text-center text-gray-500">
+            <div className="text-4xl mb-2">📭</div>
+            <p>No messages found</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-200">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                onClick={() => openMessage(message)}
+                className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
+                  !message.isRead && activeTab === 'received' ? 'bg-blue-50' : ''
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  {/* Star Icon */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleStar(message.id);
+                    }}
+                    className="text-xl hover:scale-110 transition-transform"
+                  >
+                    {message.isStarred ? '⭐' : '☆'}
+                  </button>
+
+                  {/* Message Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`font-medium ${!message.isRead && activeTab === 'received' ? 'text-gray-900' : 'text-gray-700'}`}>
+                            {activeTab === 'sent' ? `To: ${message.receiverName}` : `From: ${message.senderName}`}
+                          </span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${getPriorityColor(message.priority)}`}>
+                            {message.priority}
+                          </span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${getCategoryColor(message.category)}`}>
+                            {message.category}
+                          </span>
+                          {message.isDraft && (
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-800">
+                              DRAFT
+                            </span>
+                          )}
+                        </div>
+                        <div className={`mt-1 ${!message.isRead && activeTab === 'received' ? 'font-semibold' : 'font-normal'}`}>
+                          {message.subject}
+                        </div>
+                        <div className="mt-1 text-sm text-gray-600 truncate">
+                          {message.content}
+                        </div>
+                        <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
+                          <span>{new Date(message.createdAt).toLocaleString()}</span>
+                          {message._count && message._count.replies > 0 && (
+                            <span>💬 {message._count.replies} {message._count.replies === 1 ? 'reply' : 'replies'}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Compose Modal */}
       {showCompose && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white">Compose Message</h3>
-              <button
-                onClick={() => setShowCompose(false)}
-                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-2xl"
-              >
-                ×
-              </button>
-            </div>
-            
-            <form onSubmit={handleSendMessage} className="space-y-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-bold text-gray-800">
+                  {composeForm.replyToId ? '↩️ Reply to Message' : '✉️ Compose Message'}
+                </h3>
+                <button
+                  onClick={() => setShowCompose(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+
+              {/* Recipient */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  To:
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  To: <span className="text-red-500">*</span>
                 </label>
                 <select
-                  value={formData.receiverId}
-                  onChange={handleRecipientChange}
-                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  value={composeForm.receiverId}
+                  onChange={(e) => {
+                    const user = users.find((u) => u.id === e.target.value);
+                    if (user) {
+                      setComposeForm({
+                        ...composeForm,
+                        receiverId: user.id,
+                        receiverName: user.name,
+                        receiverRole: user.role,
+                      });
+                    }
+                  }}
+                  disabled={!!composeForm.replyToId}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                   required
                 >
                   <option value="">Select recipient...</option>
-                  {users.map(user => (
+                  {users.map((user) => (
                     <option key={user.id} value={user.id}>
                       {user.name} ({user.role})
                     </option>
@@ -296,184 +605,196 @@ export default function MessagesModule({ currentUser }: MessagesModuleProps) {
                 </select>
               </div>
 
+              {/* Subject */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Priority:
-                </label>
-                <select
-                  value={formData.priority}
-                  onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
-                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                >
-                  <option value="NORMAL">Normal</option>
-                  <option value="IMPORTANT">Important</option>
-                  <option value="URGENT">Urgent</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Subject:
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Subject: <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
-                  value={formData.subject}
-                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  value={composeForm.subject}
+                  onChange={(e) => setComposeForm({ ...composeForm, subject: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter subject..."
                   required
                 />
               </div>
 
+              {/* Priority and Category */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Priority:
+                  </label>
+                  <select
+                    value={composeForm.priority}
+                    onChange={(e) => setComposeForm({ ...composeForm, priority: e.target.value as any })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="LOW">Low</option>
+                    <option value="NORMAL">Normal</option>
+                    <option value="IMPORTANT">Important</option>
+                    <option value="HIGH">High</option>
+                    <option value="URGENT">Urgent</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Category:
+                  </label>
+                  <select
+                    value={composeForm.category}
+                    onChange={(e) => setComposeForm({ ...composeForm, category: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="GENERAL">General</option>
+                    <option value="ACADEMIC">Academic</option>
+                    <option value="ADMINISTRATIVE">Administrative</option>
+                    <option value="ATTENDANCE">Attendance</option>
+                    <option value="FEES">Fees</option>
+                    <option value="EVENT">Event</option>
+                    <option value="EMERGENCY">Emergency</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Content */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Message:
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Message: <span className="text-red-500">*</span>
                 </label>
                 <textarea
-                  value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  value={composeForm.content}
+                  onChange={(e) => setComposeForm({ ...composeForm, content: e.target.value })}
                   rows={8}
-                  placeholder="Enter your message..."
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  placeholder="Type your message here..."
                   required
                 />
               </div>
 
-              <div className="flex gap-4">
+              {/* Actions */}
+              <div className="flex justify-between gap-4">
                 <button
-                  type="submit"
-                  className="flex-1 bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+                  onClick={() => handleSendMessage(true)}
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
                 >
-                  Send Message
+                  💾 Save Draft
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setShowCompose(false)}
-                  className="flex-1 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
-                >
-                  Cancel
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowCompose(false)}
+                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => handleSendMessage(false)}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    📤 Send
+                  </button>
+                </div>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
 
       {/* Message Detail Modal */}
-      {selectedMessage && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex items-center gap-2">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{selectedMessage.subject}</h3>
-                <span className={`text-xs px-2 py-1 rounded-full ${getPriorityColor(selectedMessage.priority)}`}>
-                  {selectedMessage.priority}
-                </span>
+      {showMessageDetail && selectedMessage && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 space-y-4">
+              {/* Header */}
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 flex-wrap mb-2">
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${getPriorityColor(selectedMessage.priority)}`}>
+                      {selectedMessage.priority}
+                    </span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${getCategoryColor(selectedMessage.category)}`}>
+                      {selectedMessage.category}
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">
+                    {selectedMessage.subject}
+                  </h3>
+                  <div className="space-y-1 text-sm text-gray-600">
+                    <div>
+                      <span className="font-medium">From:</span> {selectedMessage.senderName} ({selectedMessage.senderRole})
+                    </div>
+                    <div>
+                      <span className="font-medium">To:</span> {selectedMessage.receiverName} ({selectedMessage.receiverRole})
+                    </div>
+                    <div>
+                      <span className="font-medium">Date:</span> {new Date(selectedMessage.createdAt).toLocaleString()}
+                    </div>
+                    {selectedMessage.readAt && (
+                      <div>
+                        <span className="font-medium">Read:</span> {new Date(selectedMessage.readAt).toLocaleString()}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowMessageDetail(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  ×
+                </button>
               </div>
-              <button
-                onClick={() => setSelectedMessage(null)}
-                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-2xl"
-              >
-                ×
-              </button>
-            </div>
-            
-            <div className="space-y-3 mb-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                <strong>From:</strong> {selectedMessage.senderName} ({selectedMessage.senderRole})
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                <strong>To:</strong> {selectedMessage.receiverName} ({selectedMessage.receiverRole})
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                <strong>Date:</strong> {new Date(selectedMessage.createdAt).toLocaleString()}
-              </p>
-              {selectedMessage.isRead && selectedMessage.readAt && (
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  <strong>Read:</strong> {new Date(selectedMessage.readAt).toLocaleString()}
-                </p>
+
+              {/* Reply To Info */}
+              {selectedMessage.replyTo && (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                  <div className="text-sm text-gray-600">
+                    ↩️ In reply to: <span className="font-medium">{selectedMessage.replyTo.subject}</span> from {selectedMessage.replyTo.senderName}
+                  </div>
+                </div>
               )}
-            </div>
 
-            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-4">
-              <p className="whitespace-pre-wrap text-gray-900 dark:text-gray-100">{selectedMessage.content}</p>
-            </div>
+              {/* Content */}
+              <div className="border-t border-gray-200 pt-4">
+                <div className="whitespace-pre-wrap text-gray-800">
+                  {selectedMessage.content}
+                </div>
+              </div>
 
-            <div className="flex gap-4">
-              <button
-                onClick={() => handleDeleteMessage(selectedMessage.id)}
-                className="flex-1 bg-red-600 dark:bg-red-700 text-white px-4 py-2 rounded-lg hover:bg-red-700 dark:hover:bg-red-600 transition-colors"
-              >
-                Delete
-              </button>
-              <button
-                onClick={() => setSelectedMessage(null)}
-                className="flex-1 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
-              >
-                Close
-              </button>
+              {/* Actions */}
+              <div className="border-t border-gray-200 pt-4 flex flex-wrap gap-2">
+                {activeTab === 'received' && !selectedMessage.isDraft && (
+                  <button
+                    onClick={() => replyToMessage(selectedMessage)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    ↩️ Reply
+                  </button>
+                )}
+                <button
+                  onClick={() => toggleStar(selectedMessage.id)}
+                  className="px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 transition-colors"
+                >
+                  {selectedMessage.isStarred ? '⭐ Unstar' : '☆ Star'}
+                </button>
+                <button
+                  onClick={() => toggleArchive(selectedMessage.id)}
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  {selectedMessage.isArchived ? '📥 Unarchive' : '📦 Archive'}
+                </button>
+                <button
+                  onClick={() => deleteMessage(selectedMessage.id)}
+                  className="px-4 py-2 bg-red-100 text-red-800 rounded-lg hover:bg-red-200 transition-colors"
+                >
+                  🗑️ Delete
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
-
-      {/* Messages List */}
-      <div className="space-y-2">
-        {loading ? (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">Loading messages...</div>
-        ) : messages.length === 0 ? (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-            No messages found
-          </div>
-        ) : (
-          messages.map((message) => (
-            <div
-              key={message.id}
-              onClick={() => {
-                if (!message.isRead && activeTab === 'received') {
-                  markAsRead(message.id);
-                }
-                setSelectedMessage(message);
-              }}
-              className={`p-4 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                !message.isRead && activeTab === 'received' ? 'bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20 border-blue-300 dark:border-blue-700' : ''
-              }`}
-            >
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    {!message.isRead && activeTab === 'received' && (
-                      <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
-                    )}
-                    <h4 className="font-semibold text-gray-800 dark:text-white">{message.subject}</h4>
-                    <span className={`text-xs px-2 py-1 rounded-full ${getPriorityColor(message.priority)}`}>
-                      {message.priority}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {activeTab === 'received' ? (
-                      <>From: {message.senderName} ({message.senderRole})</>
-                    ) : (
-                      <>To: {message.receiverName} ({message.receiverRole})</>
-                    )}
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-500 mt-1 line-clamp-1">
-                    {message.content}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-gray-500 dark:text-gray-500">
-                    {new Date(message.createdAt).toLocaleDateString()}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-500">
-                    {new Date(message.createdAt).toLocaleTimeString()}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
     </div>
   );
 }

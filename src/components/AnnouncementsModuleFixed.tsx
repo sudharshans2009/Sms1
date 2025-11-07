@@ -1,3 +1,4 @@
+// Enhanced AnnouncementsModule with better error handling and debugging
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -7,7 +8,7 @@ interface AnnouncementsModuleProps {
   announcements?: any[];
 }
 
-export default function AnnouncementsModule({ userRole, announcements: initialAnnouncements }: AnnouncementsModuleProps) {
+export default function AnnouncementsModuleFixed({ userRole, announcements: initialAnnouncements }: AnnouncementsModuleProps) {
   const [announcements, setAnnouncements] = useState<any[]>(initialAnnouncements || []);
   const [loading, setLoading] = useState(!initialAnnouncements);
   const [showModal, setShowModal] = useState(false);
@@ -43,7 +44,7 @@ export default function AnnouncementsModule({ userRole, announcements: initialAn
         console.error('❌ Failed to load announcements:', data.error);
         alert('Failed to load announcements: ' + data.error);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('❌ Error loading announcements:', error);
       alert('Failed to load announcements: ' + error.message);
     } finally {
@@ -113,7 +114,7 @@ export default function AnnouncementsModule({ userRole, announcements: initialAn
         console.error('❌ Failed to save announcement:', data.error);
         alert('Failed to save announcement: ' + data.error);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('❌ Error saving announcement:', error);
       alert('Failed to save announcement: ' + error.message);
     }
@@ -154,12 +155,13 @@ export default function AnnouncementsModule({ userRole, announcements: initialAn
         console.error('❌ Failed to delete announcement:', data.error);
         alert('Failed to delete announcement: ' + data.error);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('❌ Error deleting announcement:', error);
       alert('Failed to delete announcement: ' + error.message);
     }
   };
 
+  // Rest of the component remains the same...
   const getPriorityColor = (priority: string) => {
     const p = (priority || 'NORMAL').toLowerCase();
     switch(p) {
@@ -270,7 +272,7 @@ export default function AnnouncementsModule({ userRole, announcements: initialAn
         </div>
       )}
 
-      {/* Modal */}
+      {/* Modal - Same as original */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">

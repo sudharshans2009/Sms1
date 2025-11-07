@@ -4,20 +4,14 @@ import prisma from '@/lib/prisma';
 // GET /api/classes/[id]
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const classItem = await prisma.class.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         teacher: true,
-        students: {
-          select: {
-            id: true,
-            name: true,
-            rollNumber: true,
-          },
-        },
       },
     });
 
@@ -27,6 +21,20 @@ export async function GET(
         { status: 404 }
       );
     }
+
+    // Get students for this class separately
+    const students = await prisma.student.findMany({
+      where: {
+        class: classItem.class,
+        section: classItem.section,
+      },
+      select: {
+        id: true,
+        name: true,
+        rollNumber: true,
+        studentId: true,
+      },
+    });
 
     // Format response to match expected structure
     const formattedClass = {
@@ -38,8 +46,8 @@ export async function GET(
       classTeacherId: classItem.teacherId,
       room: classItem.room,
       capacity: classItem.capacity,
-      students: classItem.students,
-      studentsCount: classItem.students.length,
+      students: students,
+      studentsCount: students.length,
     };
     
     return NextResponse.json({ success: true, data: formattedClass });
@@ -55,11 +63,12 @@ export async function GET(
 // PUT /api/classes/[id]
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
-    console.log('📤 Updating class:', params.id, body);
+    console.log('📤 Updating class:', id, body);
     
     // Validate required fields
     if (!body.name || !body.section) {
@@ -71,7 +80,7 @@ export async function PUT(
 
     // Check if class exists
     const existing = await prisma.class.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!existing) {
@@ -86,7 +95,7 @@ export async function PUT(
       where: {
         class: body.name,
         section: body.section,
-        id: { not: params.id }, // Exclude current class
+        id: { not: id }, // Exclude current class
       },
     });
 
@@ -99,7 +108,7 @@ export async function PUT(
 
     // Update class
     const updatedClass = await prisma.class.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         class: body.name,
         section: body.section,
@@ -109,18 +118,31 @@ export async function PUT(
       },
       include: {
         teacher: true,
-        students: {
-          select: {
-            id: true,
-            name: true,
-            rollNumber: true,
-          },
-        },
       },
     });
 
+    // Get students for this class separately
+    const students = await prisma.student.findMany({
+      where: {
+        class: updatedClass.class,
+        section: updatedClass.section,
+      },
+      select: {
+        id: true,
+        name: true,
+        rollNumber: true,
+        studentId: true,
+      },
+    });
+
+    const formattedClass = {
+      ...updatedClass,
+      students: students,
+      studentsCount: students.length,
+    };
+
     console.log('✅ Class updated successfully:', updatedClass.id);
-    return NextResponse.json({ success: true, data: updatedClass });
+    return NextResponse.json({ success: true, data: formattedClass });
   } catch (error) {
     console.error('❌ Error updating class:', error);
     return NextResponse.json(
@@ -133,17 +155,15 @@ export async function PUT(
 // DELETE /api/classes/[id]
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    console.log('🗑️ Deleting class:', params.id);
+    const { id } = await params;
+    console.log('🗑️ Deleting class:', id);
     
     // Check if class exists
     const existing = await prisma.class.findUnique({
-      where: { id: params.id },
-      include: {
-        students: true,
-      },
+      where: { id },
     });
 
     if (!existing) {
@@ -154,19 +174,26 @@ export async function DELETE(
     }
 
     // Check if class has students
-    if (existing.students && existing.students.length > 0) {
+    const studentsCount = await prisma.student.count({
+      where: {
+        class: existing.class,
+        section: existing.section,
+      },
+    });
+
+    if (studentsCount > 0) {
       return NextResponse.json(
-        { success: false, error: `Cannot delete class with ${existing.students.length} students. Please reassign students first.` },
+        { success: false, error: `Cannot delete class with ${studentsCount} students. Please reassign students first.` },
         { status: 400 }
       );
     }
 
     // Delete class
     await prisma.class.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
-    console.log('✅ Class deleted successfully:', params.id);
+    console.log('✅ Class deleted successfully:', id);
     return NextResponse.json({ success: true, message: 'Class deleted successfully' });
   } catch (error) {
     console.error('❌ Error deleting class:', error);

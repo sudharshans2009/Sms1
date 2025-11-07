@@ -210,7 +210,7 @@ export default function ReportsModule({ userRole, students: initialStudents }: R
 
     // Combine headers and data
     const csvContent = [headers, ...csvData]
-      .map(row => row.map(field => `"${field}"`).join(','))
+      .map(row => row.map((field: string | number) => `"${field}"`).join(','))
       .join('\n');
 
     // Create and download file

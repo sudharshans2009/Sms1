@@ -9,6 +9,7 @@ interface StudentsModuleProps {
 
 export default function StudentsModule({ userRole }: StudentsModuleProps) {
   const [students, setStudents] = useState<any[]>([]);
+  const [buses, setBuses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
@@ -27,7 +28,8 @@ export default function StudentsModule({ userRole }: StudentsModuleProps) {
     parentPhone: '',
     parentEmail: '',
     address: '',
-    bloodGroup: ''
+    bloodGroup: '',
+    busId: ''
   });
   const [formError, setFormError] = useState('');
   const [formLoading, setFormLoading] = useState(false);
@@ -42,6 +44,7 @@ export default function StudentsModule({ userRole }: StudentsModuleProps) {
 
   useEffect(() => {
     loadStudents();
+    loadBuses();
   }, []);
 
   const loadStudents = async () => {
@@ -58,6 +61,17 @@ export default function StudentsModule({ userRole }: StudentsModuleProps) {
     }
   };
 
+  const loadBuses = async () => {
+    try {
+      const response = await axios.get('/api/buses');
+      if (response.data.success) {
+        setBuses(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error loading buses:', error);
+    }
+  };
+
   const handleAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
@@ -66,6 +80,7 @@ export default function StudentsModule({ userRole }: StudentsModuleProps) {
     try {
       const response = await axios.post('/api/students', formData);
       if (response.data.success) {
+        if (response.data.success) {
         setShowAddModal(false);
         setFormData({
           studentId: '',
@@ -79,10 +94,12 @@ export default function StudentsModule({ userRole }: StudentsModuleProps) {
           parentPhone: '',
           parentEmail: '',
           address: '',
-          bloodGroup: ''
+          bloodGroup: '',
+          busId: ''
         });
         loadStudents(); // Reload the students list
         alert('Student added successfully!');
+      }
       }
     } catch (error: any) {
       setFormError(error.response?.data?.error || 'Failed to add student');

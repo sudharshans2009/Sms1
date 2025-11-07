@@ -344,3 +344,33 @@ model BookCategory {
 
   @@index([name])
 }
+
+// Messages
+model Message {
+  id          String      @id @default(cuid())
+  subject     String
+  content     String      @db.Text
+  senderId    String
+  senderName  String
+  senderRole  Role
+  receiverId  String
+  receiverName String
+  receiverRole Role
+  isRead      Boolean     @default(false)
+  readAt      DateTime?
+  priority    MessagePriority @default(NORMAL)
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+enum MessagePriority {
+  NORMAL
+  IMPORTANT
+  URGENT
+}

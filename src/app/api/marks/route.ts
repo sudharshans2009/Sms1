@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
           const updated = await prisma.marks.update({
             where: { id: existingMarks.id },
             data: {
-              subjects: subjectsData,
+              subjects: JSON.stringify(subjectsData),
               total,
               grade,
             },
@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
               class: classParam,
               section,
               examType,
-              subjects: subjectsData,
+              subjects: JSON.stringify(subjectsData),
               total: marks,
               grade,
             },

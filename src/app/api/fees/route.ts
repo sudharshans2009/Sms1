@@ -280,7 +280,6 @@ export async function POST(request: NextRequest) {
 
       const created = await prisma.feePayment.createMany({
         data: payments,
-        skipDuplicates: true,
       });
 
       return NextResponse.json({

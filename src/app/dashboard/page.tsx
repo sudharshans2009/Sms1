@@ -16,6 +16,7 @@ const ReportsModule = dynamic(() => import('@/components/ReportsModule'), { ssr:
 const AnnouncementsModule = dynamic(() => import('@/components/AnnouncementsModule'), { ssr: false });
 const LibraryModuleEnhanced = dynamic(() => import('@/components/LibraryModule'), { ssr: false });
 const MessagesModuleEnhanced = dynamic(() => import('@/components/MessagesModule'), { ssr: false });
+const AcademicCalendarModule = dynamic(() => import('@/components/AcademicCalendarModule'), { ssr: false });
 
 // Placeholder component (no longer needed but keeping for reference)
 const PlaceholderModule = ({ userRole, classes }: any) => (
@@ -120,6 +121,7 @@ export default function DashboardPage() {
       { id: 'teachers', name: 'Teachers', icon: '👨‍🏫' },
       { id: 'classes', name: 'Classes', icon: '🏫' },
       { id: 'timetable', name: 'Timetable', icon: '📅' },
+      { id: 'calendar', name: 'Academic Calendar', icon: '📆' },
       { id: 'attendance', name: 'Attendance', icon: '✓' },
       { id: 'marks', name: 'Marks', icon: '📝' },
       { id: 'reports', name: 'Reports', icon: '📈' },
@@ -132,6 +134,7 @@ export default function DashboardPage() {
       { id: 'dashboard', name: 'Dashboard', icon: '📊' },
       { id: 'students', name: 'Students', icon: '👨‍🎓' },
       { id: 'timetable', name: 'Timetable', icon: '📅' },
+      { id: 'calendar', name: 'Academic Calendar', icon: '📆' },
       { id: 'attendance', name: 'Attendance', icon: '✓' },
       { id: 'marks', name: 'Marks', icon: '📝' },
       { id: 'reports', name: 'Reports', icon: '📈' },
@@ -142,6 +145,7 @@ export default function DashboardPage() {
     student: [
       { id: 'dashboard', name: 'Dashboard', icon: '📊' },
       { id: 'timetable', name: 'Timetable', icon: '📅' },
+      { id: 'calendar', name: 'Academic Calendar', icon: '📆' },
       { id: 'attendance', name: 'My Attendance', icon: '✓' },
       { id: 'marks', name: 'My Marks', icon: '📝' },
       { id: 'library', name: 'Library', icon: '📚' },
@@ -151,7 +155,7 @@ export default function DashboardPage() {
     driver: [
       { id: 'dashboard', name: 'Dashboard', icon: '📊' },
       { id: 'buses', name: 'My Bus', icon: '🚌' },
-      { id: 'messages', name: 'Messages', icon: '�' },
+      { id: 'messages', name: 'Messages', icon: '💬' },
     ],
   };
 
@@ -431,6 +435,10 @@ export default function DashboardPage() {
 
             {activePage === 'messages' && (
               <MessagesModuleEnhanced currentUser={{ id: user.id, name: user.name, role: user.role }} />
+            )}
+
+            {activePage === 'calendar' && (
+              <AcademicCalendarModule userRole={user.role} userId={user.id} />
             )}
           </div>
         </main>

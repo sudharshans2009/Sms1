@@ -6,9 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("POSTGRES_PRISMA_URL")
-  directUrl = env("POSTGRES_URL_NON_POOLING")
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 // Users and Authentication
@@ -70,6 +69,7 @@ model Student {
   feePayments  FeePayment[]
   medical      StudentMedical?
   academic     StudentAcademic[]
+  examResults  ExamResult[]
 
   @@index([studentId])
   @@index([class, section])
@@ -185,7 +185,7 @@ model Timetable {
   classId     String   @unique
   class       Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
   
-  schedule    Json     // Stores the complete schedule as JSON
+  schedule    String   // Stores the complete schedule as JSON string
   lastUpdated DateTime @default(now())
   updatedBy   String
   
@@ -231,7 +231,7 @@ model Marks {
   class      String
   section    String
   examType   String
-  subjects   Json     // Stores subject-wise marks as JSON
+  subjects   String   // Stores subject-wise marks as JSON string
   total      Int
   grade      String
   
@@ -247,7 +247,7 @@ model Marks {
 model Announcement {
   id        String             @id @default(cuid())
   title     String
-  content   String             @db.Text
+  content   String
   priority  AnnouncementPriority @default(NORMAL)
   target    AnnouncementTarget   @default(ALL)
   classId   String?
@@ -291,7 +291,7 @@ model Book {
   quantity    Int      @default(1)
   available   Int      @default(1)
   location    String
-  description String?  @db.Text
+  description String?
   coverImage  String?
   
   createdAt   DateTime @default(now())
@@ -355,7 +355,7 @@ model BookCategory {
 model Message {
   id              String          @id @default(cuid())
   subject         String
-  content         String          @db.Text
+  content         String
   
   // Sender Information
   senderId        String
@@ -441,7 +441,7 @@ model MessageTemplate {
   id          String          @id @default(cuid())
   name        String
   subject     String
-  content     String          @db.Text
+  content     String
   category    MessageCategory @default(GENERAL)
   role        Role            // Which role can use this template
   isActive    Boolean         @default(true)
@@ -457,7 +457,7 @@ model MessageTemplate {
 model BroadcastMessage {
   id              String          @id @default(cuid())
   subject         String
-  content         String          @db.Text
+  content         String
   
   senderId        String
   senderName      String
@@ -549,7 +549,7 @@ model FeePayment {
   paidDate        DateTime?
   
   // Additional Info
-  remarks         String?        @db.Text
+  remarks         String?        // Remarks
   paidBy          String?        // Parent/Guardian name
   
   createdAt       DateTime       @default(now())
@@ -593,7 +593,7 @@ model BusIssue {
   issueType       BusIssueType
   severity        IssueSeverity  @default(MEDIUM)
   title           String
-  description     String         @db.Text
+  description     String
   location        String?
   
   // Visibility
@@ -603,10 +603,10 @@ model BusIssue {
   status          IssueStatus    @default(REPORTED)
   resolvedBy      String?
   resolvedAt      DateTime?
-  resolution      String?        @db.Text
+  resolution      String?
   
   // Attachments
-  photos          String[]       // Array of image URLs
+  photos          String?        // JSON string array of image URLs
   
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
@@ -690,13 +690,13 @@ model StudentMedical {
   weight          Float?    // in kg
   
   // Health Issues
-  allergies       String[]  // Array of allergies
-  chronicIllness  String[]  // Array of chronic conditions
-  disabilities    String?   @db.Text
+  allergies       String?  // JSON string array of allergies
+  chronicIllness  String?  // JSON string array of chronic conditions
+  disabilities    String?
   
   // Medications
-  currentMedications String[] // Array of current medications
-  pastSurgeries   String[]  // Array of past surgeries
+  currentMedications String? // JSON string array of current medications
+  pastSurgeries   String?   // JSON string array of past surgeries
   
   // Emergency
   emergencyContact String
@@ -704,9 +704,9 @@ model StudentMedical {
   emergencyRelation String
   
   // Medical History
-  vaccinations    String[]  // Array of vaccinations
+  vaccinations    String?   // JSON string array of vaccinations
   lastCheckup     DateTime?
-  notes           String?   @db.Text
+  notes           String?
   
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
@@ -724,8 +724,8 @@ model StudentAcademic {
   academicYear    String
   term            String   // Term1, Term2, Term3, Annual
   
-  // Marks by Subject (JSON)
-  subjects        Json     // { "Math": 95, "Science": 88, ... }
+  // Marks by Subject (JSON string)
+  subjects        String   // JSON string: { "Math": 95, "Science": 88, ... }
   totalMarks      Float
   maxMarks        Float
   percentage      Float
@@ -743,8 +743,8 @@ model StudentAcademic {
   promoted        Boolean  @default(false)
   
   // Remarks
-  teacherRemarks  String?  @db.Text
-  principalRemarks String? @db.Text
+  teacherRemarks  String?
+  principalRemarks String?
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -763,4 +763,314 @@ enum StudyStatus {
   FAILED
   DROPOUT
   TRANSFERRED
+}
+
+// Academic Calendar System
+model AcademicYear {
+  id              String   @id @default(cuid())
+  year            String   @unique // e.g., "2024-2025"
+  startDate       DateTime
+  endDate         DateTime
+  isActive        Boolean  @default(false)
+  description     String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  events          AcademicEvent[]
+  terms           AcademicTerm[]
+  holidays        Holiday[]
+  
+  @@index([year])
+  @@index([isActive])
+}
+
+model AcademicTerm {
+  id              String       @id @default(cuid())
+  academicYearId  String
+  academicYear    AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  
+  name            String       // Term 1, Term 2, Term 3, Annual
+  startDate       DateTime
+  endDate         DateTime
+  isActive        Boolean      @default(false)
+  
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  // Relations
+  events          AcademicEvent[]
+  exams           Exam[]
+  
+  @@index([academicYearId])
+  @@index([name])
+}
+
+model AcademicEvent {
+  id              String        @id @default(cuid())
+  title           String
+  description     String?
+  eventType       EventType
+  startDate       DateTime
+  endDate         DateTime?
+  isAllDay        Boolean       @default(false)
+  location        String?
+  
+  // Academic Relations
+  academicYearId  String?
+  academicYear    AcademicYear? @relation(fields: [academicYearId], references: [id], onDelete: SetNull)
+  termId          String?
+  term            AcademicTerm? @relation(fields: [termId], references: [id], onDelete: SetNull)
+  
+  // Target Audience
+  targetRole      Role?         // Who can see this event
+  targetClass     String?       // Specific class
+  targetSection   String?       // Specific section
+  isPublic        Boolean       @default(true)
+  
+  // Event Properties
+  priority        EventPriority @default(NORMAL)
+  color           String        @default("#3b82f6") // Hex color
+  isRecurring     Boolean       @default(false)
+  recurrenceRule  String?       // RRULE format
+  
+  // Metadata
+  createdBy       String
+  createdByName   String
+  createdByRole   Role
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  // Relations
+  attendees       EventAttendee[]
+  reminders       EventReminder[]
+  
+  @@index([eventType])
+  @@index([startDate])
+  @@index([academicYearId])
+  @@index([targetRole])
+  @@index([targetClass, targetSection])
+}
+
+enum EventType {
+  EXAM
+  ASSIGNMENT
+  HOLIDAY
+  MEETING
+  SPORTS
+  CULTURAL
+  ACADEMIC
+  ADMINISTRATIVE
+  PARENT_TEACHER
+  WORKSHOP
+  FIELD_TRIP
+  ADMISSION
+  RESULT
+  ORIENTATION
+  GRADUATION
+  OTHER
+}
+
+enum EventPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+model Holiday {
+  id              String       @id @default(cuid())
+  name            String
+  date            DateTime
+  description     String?
+  type            HolidayType  @default(NATIONAL)
+  isOptional      Boolean      @default(false)
+  
+  academicYearId  String
+  academicYear    AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  @@index([date])
+  @@index([academicYearId])
+  @@index([type])
+}
+
+enum HolidayType {
+  NATIONAL
+  REGIONAL
+  SCHOOL
+  RELIGIOUS
+  CULTURAL
+  SPORTS
+}
+
+model Exam {
+  id              String       @id @default(cuid())
+  name            String       // Mid-term, Final, Unit Test
+  description     String?
+  examType        ExamType
+  
+  startDate       DateTime
+  endDate         DateTime
+  
+  // Academic Relations
+  termId          String
+  term            AcademicTerm @relation(fields: [termId], references: [id], onDelete: Cascade)
+  class           String
+  section         String?
+  
+  // Exam Configuration
+  maxMarks        Int          @default(100)
+  passingMarks    Int          @default(35)
+  duration        Int          // in minutes
+  instructions    String?
+  
+  // Status
+  isPublished     Boolean      @default(false)
+  isCompleted     Boolean      @default(false)
+  
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  // Relations
+  subjects        ExamSubject[]
+  results         ExamResult[]
+  schedule        ExamSchedule[]
+  
+  @@index([termId])
+  @@index([class, section])
+  @@index([examType])
+  @@index([startDate])
+}
+
+enum ExamType {
+  UNIT_TEST
+  MID_TERM
+  FINAL_TERM
+  QUARTERLY
+  HALF_YEARLY
+  ANNUAL
+  ENTRANCE
+  COMPETITIVE
+  INTERNAL_ASSESSMENT
+  PRACTICAL
+  PROJECT
+}
+
+model ExamSubject {
+  id              String   @id @default(cuid())
+  examId          String
+  exam            Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  
+  subject         String
+  maxMarks        Int      @default(100)
+  passingMarks    Int      @default(35)
+  duration        Int      // in minutes
+  date            DateTime?
+  startTime       String?  // e.g., "09:00"
+  endTime         String?  // e.g., "12:00"
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([examId])
+  @@index([subject])
+}
+
+model ExamResult {
+  id              String   @id @default(cuid())
+  examId          String
+  exam            Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  
+  studentId       String
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  subject         String
+  marksObtained   Float
+  maxMarks        Int
+  grade           String?
+  remarks         String?
+  
+  isAbsent        Boolean  @default(false)
+  isPass          Boolean  @default(false)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@unique([examId, studentId, subject])
+  @@index([examId])
+  @@index([studentId])
+  @@index([subject])
+}
+
+model ExamSchedule {
+  id              String   @id @default(cuid())
+  examId          String
+  exam            Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  
+  subject         String
+  date            DateTime
+  startTime       String   // e.g., "09:00"
+  endTime         String   // e.g., "12:00"
+  room            String?
+  invigilator     String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([examId])
+  @@index([date])
+  @@index([subject])
+}
+
+model EventAttendee {
+  id              String        @id @default(cuid())
+  eventId         String
+  event           AcademicEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  userId          String
+  userName        String
+  userRole        Role
+  
+  status          AttendeeStatus @default(INVITED)
+  responseDate    DateTime?
+  notes           String?
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@index([userId])
+  @@index([status])
+}
+
+enum AttendeeStatus {
+  INVITED
+  ACCEPTED
+  DECLINED
+  TENTATIVE
+  NO_RESPONSE
+}
+
+model EventReminder {
+  id              String        @id @default(cuid())
+  eventId         String
+  event           AcademicEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  userId          String
+  reminderTime    Int           // minutes before event
+  isEmailSent     Boolean       @default(false)
+  isSMSSent       Boolean       @default(false)
+  isRead          Boolean       @default(false)
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@index([eventId])
+  @@index([userId])
 }

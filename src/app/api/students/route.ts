@@ -55,6 +55,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate required fields for Prisma schema
+    if (!body.parentPhone) {
+      return NextResponse.json(
+        { success: false, error: 'Parent phone is required' },
+        { status: 400 }
+      );
+    }
+
+    if (!body.parentEmail) {
+      return NextResponse.json(
+        { success: false, error: 'Parent email is required' },
+        { status: 400 }
+      );
+    }
+
     // Check if student ID already exists
     const existing = await prisma.student.findUnique({
       where: { studentId: body.studentId },
@@ -63,6 +78,18 @@ export async function POST(request: NextRequest) {
     if (existing) {
       return NextResponse.json(
         { success: false, error: 'Student ID already exists' },
+        { status: 400 }
+      );
+    }
+
+    // Check if parent email already exists
+    const existingEmail = await prisma.student.findFirst({
+      where: { parentEmail: body.parentEmail },
+    });
+
+    if (existingEmail) {
+      return NextResponse.json(
+        { success: false, error: 'Parent email already exists in the system' },
         { status: 400 }
       );
     }
@@ -78,18 +105,32 @@ export async function POST(request: NextRequest) {
         dateOfBirth: body.dateOfBirth ? new Date(body.dateOfBirth) : null,
         gender: body.gender || null,
         parentName: body.parentName || null,
-        parentPhone: body.parentPhone || null,
-        parentEmail: body.parentEmail || null,
+        parentPhone: body.parentPhone,
+        parentEmail: body.parentEmail,
         address: body.address || null,
         bloodGroup: body.bloodGroup || null,
+        studentPhone: body.studentPhone || null,
+        studentEmail: body.studentEmail || null,
+        busId: body.busId || null,
       },
     });
 
     return NextResponse.json({ success: true, data: student });
   } catch (error) {
     console.error('Error adding student:', error);
+    
+    // Handle Prisma errors
+    if (error instanceof Error) {
+      if (error.message.includes('Unique constraint failed')) {
+        return NextResponse.json(
+          { success: false, error: 'A student with this ID or email already exists' },
+          { status: 400 }
+        );
+      }
+    }
+    
     return NextResponse.json(
-      { success: false, error: 'Failed to add student' },
+      { success: false, error: 'Failed to add student. Please check all required fields.' },
       { status: 500 }
     );
   }

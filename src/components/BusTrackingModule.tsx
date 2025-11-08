@@ -37,6 +37,8 @@ export default function BusTrackingModule({ userRole, buses: initialBuses }: Bus
   const [loading, setLoading] = useState(!initialBuses);
   const [isClient, setIsClient] = useState(false);
   const [showAddBusModal, setShowAddBusModal] = useState(false);
+  const [showEditBusModal, setShowEditBusModal] = useState(false);
+  const [editingBus, setEditingBus] = useState<any>(null);
   const [newBus, setNewBus] = useState({
     busId: '',
     driverName: '',
@@ -96,15 +98,40 @@ export default function BusTrackingModule({ userRole, buses: initialBuses }: Bus
   };
 
   const handleCallDriver = (phone: string) => {
-    if (phone && phone !== 'N/A') {
-      window.location.href = `tel:${phone}`;
+    if (phone && phone !== 'N/A' && phone !== '') {
+      // Clean phone number (remove spaces, dashes, etc.)
+      const cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
+      
+      // Check if it's a valid phone number
+      if (cleanPhone.match(/^\+?\d{10,15}$/)) {
+        window.location.href = `tel:${cleanPhone}`;
+      } else {
+        alert('Invalid phone number format');
+      }
     } else {
       alert('Driver phone number not available');
     }
   };
 
-  const handleOpenInGoogleMaps = (lat: number, lng: number) => {
-    const url = `https://www.google.com/maps?q=${lat},${lng}`;
+  const handleOpenInGoogleMaps = (lat: number, lng: number, busId: string) => {
+    if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
+      alert('Invalid coordinates for Google Maps');
+      return;
+    }
+    
+    // Enhanced Google Maps URL with labels and search
+    const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}&query_place_id=${busId}`;
+    window.open(url, '_blank');
+  };
+
+  const handleOpenDirections = (lat: number, lng: number, busId: string) => {
+    if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
+      alert('Invalid coordinates for directions');
+      return;
+    }
+    
+    // Open Google Maps directions to the bus location
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
     window.open(url, '_blank');
   };
 
@@ -124,9 +151,59 @@ export default function BusTrackingModule({ userRole, buses: initialBuses }: Bus
         });
         await loadBuses();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding bus:', error);
-      alert('Failed to add bus');
+      alert(error.response?.data?.error || 'Failed to add bus');
+    }
+  };
+
+  const handleEditBus = (bus: any) => {
+    setEditingBus({
+      busId: bus.busId,
+      driverName: bus.driverName,
+      driverPhone: bus.driverPhone,
+      route: bus.route,
+      currentLat: bus.currentLocation?.lat || 10.9027,
+      currentLng: bus.currentLocation?.lng || 76.9015,
+      status: bus.status === 'Active' ? 'ACTIVE' : 'INACTIVE',
+    });
+    setShowEditBusModal(true);
+  };
+
+  const handleUpdateBus = async () => {
+    if (!editingBus) return;
+    
+    try {
+      const response = await axios.put(`/api/buses/${editingBus.busId}`, editingBus);
+      if (response.data.success) {
+        alert('Bus updated successfully!');
+        setShowEditBusModal(false);
+        setEditingBus(null);
+        await loadBuses();
+      }
+    } catch (error: any) {
+      console.error('Error updating bus:', error);
+      alert(error.response?.data?.error || 'Failed to update bus');
+    }
+  };
+
+  const handleDeleteBus = async (busId: string, busName: string) => {
+    if (!confirm(`Are you sure you want to delete bus ${busName}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await axios.delete(`/api/buses/${busId}`);
+      if (response.data.success) {
+        alert('Bus deleted successfully!');
+        if (selectedBus?.id === busId) {
+          setSelectedBus(null);
+        }
+        await loadBuses();
+      }
+    } catch (error: any) {
+      console.error('Error deleting bus:', error);
+      alert(error.response?.data?.error || 'Failed to delete bus');
     }
   };
 
@@ -388,7 +465,7 @@ export default function BusTrackingModule({ userRole, buses: initialBuses }: Bus
                   </button>
                 </div>
 
-                <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <span className="text-sm font-medium flex items-center gap-2">
                     <span>📞</span> Phone
                   </span>
@@ -460,15 +537,28 @@ export default function BusTrackingModule({ userRole, buses: initialBuses }: Bus
                     <p className="text-xs font-mono text-gray-600 dark:text-gray-400">
                       Lng: {selectedBus?.currentLocation?.lng?.toFixed(6) || 'N/A'}
                     </p>
-                    <button
-                      onClick={() => handleOpenInGoogleMaps(
-                        selectedBus.currentLocation.lat,
-                        selectedBus.currentLocation.lng
-                      )}
-                      className="text-xs bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors mt-2 w-full flex items-center justify-center gap-1"
-                    >
-                      🗺️ Open in Google Maps
-                    </button>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <button
+                        onClick={() => handleOpenInGoogleMaps(
+                          selectedBus.currentLocation.lat,
+                          selectedBus.currentLocation.lng,
+                          selectedBus.id
+                        )}
+                        className="text-xs bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors flex items-center justify-center gap-1"
+                      >
+                        🗺️ View on Maps
+                      </button>
+                      <button
+                        onClick={() => handleOpenDirections(
+                          selectedBus.currentLocation.lat,
+                          selectedBus.currentLocation.lng,
+                          selectedBus.id
+                        )}
+                        className="text-xs bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors flex items-center justify-center gap-1"
+                      >
+                        🧭 Directions
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -553,7 +643,7 @@ export default function BusTrackingModule({ userRole, buses: initialBuses }: Bus
                       ● {bus.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 space-x-2">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -563,6 +653,28 @@ export default function BusTrackingModule({ userRole, buses: initialBuses }: Bus
                     >
                       View
                     </button>
+                    {userRole === 'admin' && (
+                      <>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditBus(bus);
+                          }}
+                          className="text-xs bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteBus(bus.id, bus.id);
+                          }}
+                          className="text-xs bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -671,6 +783,134 @@ export default function BusTrackingModule({ userRole, buses: initialBuses }: Bus
                   </button>
                   <button
                     onClick={() => setShowAddBusModal(false)}
+                    className="flex-1 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-white py-3 px-6 rounded-lg font-semibold transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Bus Modal */}
+      {showEditBusModal && editingBus && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <span>🚌</span>
+                  Edit Bus - {editingBus.busId}
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowEditBusModal(false);
+                    setEditingBus(null);
+                  }}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Bus ID</label>
+                  <input
+                    type="text"
+                    value={editingBus.busId}
+                    disabled
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 text-gray-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Bus ID cannot be changed</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Driver Name *</label>
+                  <input
+                    type="text"
+                    value={editingBus.driverName}
+                    onChange={(e) => setEditingBus({ ...editingBus, driverName: e.target.value })}
+                    placeholder="Driver's full name"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amrita-orange dark:bg-gray-700"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Driver Phone *</label>
+                  <input
+                    type="tel"
+                    value={editingBus.driverPhone}
+                    onChange={(e) => setEditingBus({ ...editingBus, driverPhone: e.target.value })}
+                    placeholder="+91-9876543210"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amrita-orange dark:bg-gray-700"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Route *</label>
+                  <input
+                    type="text"
+                    value={editingBus.route}
+                    onChange={(e) => setEditingBus({ ...editingBus, route: e.target.value })}
+                    placeholder="e.g., Ettimadai - Coimbatore North"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amrita-orange dark:bg-gray-700"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Status</label>
+                  <select
+                    value={editingBus.status}
+                    onChange={(e) => setEditingBus({ ...editingBus, status: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amrita-orange dark:bg-gray-700"
+                  >
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Current Latitude</label>
+                    <input
+                      type="number"
+                      step="0.000001"
+                      value={editingBus.currentLat}
+                      onChange={(e) => setEditingBus({ ...editingBus, currentLat: parseFloat(e.target.value) })}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amrita-orange dark:bg-gray-700"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Current Longitude</label>
+                    <input
+                      type="number"
+                      step="0.000001"
+                      value={editingBus.currentLng}
+                      onChange={(e) => setEditingBus({ ...editingBus, currentLng: parseFloat(e.target.value) })}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amrita-orange dark:bg-gray-700"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3 mt-6">
+                  <button
+                    onClick={handleUpdateBus}
+                    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold transition-colors"
+                    disabled={!editingBus.driverName || !editingBus.route}
+                  >
+                    ✓ Update Bus
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowEditBusModal(false);
+                      setEditingBus(null);
+                    }}
                     className="flex-1 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-white py-3 px-6 rounded-lg font-semibold transition-colors"
                   >
                     Cancel

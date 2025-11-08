@@ -178,6 +178,23 @@ export default function StudentsModule({ userRole }: StudentsModuleProps) {
     }
   };
 
+  // Helper function to handle phone calls
+  const handleCallParent = (phone: string) => {
+    if (phone && phone.trim() !== '') {
+      // Clean phone number (remove spaces, dashes, etc.)
+      const cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
+      
+      // Check if it's a valid phone number
+      if (cleanPhone.match(/^\+?\d{10,15}$/)) {
+        window.location.href = `tel:${cleanPhone}`;
+      } else {
+        alert('Invalid phone number format');
+      }
+    } else {
+      alert('Parent phone number not available');
+    }
+  };
+
   // Export functions
   const exportStudentsToCSV = (data: any[], filename: string) => {
     console.log('📊 Exporting students to CSV:', filename, data.length, 'students');
@@ -474,9 +491,33 @@ export default function StudentsModule({ userRole }: StudentsModuleProps) {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{student.name}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{student.class}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{student.section}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{student.parentPhone || '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                        {student.parentPhone ? (
+                          <button
+                            onClick={() => handleCallParent(student.parentPhone)}
+                            className="text-amrita-blue hover:underline flex items-center gap-1"
+                          >
+                            {student.parentPhone}
+                            <span className="text-green-500 text-xs">📱</span>
+                          </button>
+                        ) : (
+                          '-'
+                        )}
+                      </td>
                       {activeTab === '11-12' && (
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{student.studentPhone || '-'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                          {student.studentPhone ? (
+                            <button
+                              onClick={() => handleCallParent(student.studentPhone)}
+                              className="text-amrita-blue hover:underline flex items-center gap-1"
+                            >
+                              {student.studentPhone}
+                              <span className="text-green-500 text-xs">📱</span>
+                            </button>
+                          ) : (
+                            '-'
+                          )}
+                        </td>
                       )}
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{student.bus || '-'}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
@@ -711,7 +752,7 @@ export default function StudentsModule({ userRole }: StudentsModuleProps) {
                 {/* Parent Phone */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Parent Phone
+                    Parent Phone <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="tel"
@@ -719,13 +760,14 @@ export default function StudentsModule({ userRole }: StudentsModuleProps) {
                     onChange={(e) => setFormData({...formData, parentPhone: e.target.value})}
                     className="input-field"
                     placeholder="+91 9876543210"
+                    required
                   />
                 </div>
 
                 {/* Parent Email */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Parent Email
+                    Parent Email <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="email"
@@ -733,6 +775,7 @@ export default function StudentsModule({ userRole }: StudentsModuleProps) {
                     onChange={(e) => setFormData({...formData, parentEmail: e.target.value})}
                     className="input-field"
                     placeholder="parent@example.com"
+                    required
                   />
                 </div>
 

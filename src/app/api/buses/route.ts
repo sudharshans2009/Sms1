@@ -30,6 +30,8 @@ function adaptBusForClient(bus: any) {
     internalId: bus.id,
     busId: bus.busId || bus.id,
     driverName: bus.driverName,
+    driverPhone: bus.driver?.phone || 'N/A',
+    driverLicense: bus.driver?.license || 'N/A',
     route: bus.route,
     currentLocation: { lat: currentLat, lng: currentLng },
     speed: bus.speed ?? 0,

@@ -55,18 +55,20 @@ export default function BusTrackingModule({ userRole, buses: initialBuses }: Bus
     }
   }, [buses]);
 
-  // Auto-refresh bus locations every 30 seconds
+  // Auto-refresh bus locations every 15 seconds for real-time tracking
   useEffect(() => {
     const interval = setInterval(() => {
       loadBuses();
-    }, 30000); // 30 seconds
+    }, 15000); // 15 seconds for more frequent updates
 
     return () => clearInterval(interval);
   }, []);
 
   const loadBuses = async () => {
     try {
-      const response = await axios.get('/api/buses');
+      const response = await axios.get('/api/buses', {
+        params: { realtime: 'true' } // Enable real-time simulation
+      });
       if (response.data.success) {
         setBuses(response.data.data);
         if (response.data.data.length > 0 && !selectedBus) {
@@ -238,7 +240,8 @@ export default function BusTrackingModule({ userRole, buses: initialBuses }: Bus
                         <div className="p-2">
                           <h4 className="font-bold text-lg text-amrita-orange">{selectedBus.id}</h4>
                           <p className="text-sm mt-1">👨‍✈️ {selectedBus.driverName}</p>
-                          <p className="text-sm">🗺️ {selectedBus.route}</p>
+                          <p className="text-sm">� {selectedBus.driverPhone}</p>
+                          <p className="text-sm">�🗺️ {selectedBus.route}</p>
                           <p className="text-sm">👥 {selectedBus.students} students</p>
                           <p className="text-sm">⚡ {selectedBus.speed} km/h</p>
                           <p className="text-xs text-gray-500 mt-2">

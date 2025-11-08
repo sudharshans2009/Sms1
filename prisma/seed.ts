@@ -352,26 +352,62 @@ async function main() {
 
   console.log('✅ Classes created');
 
+  // Create Bus Drivers first
+  console.log('Creating bus drivers...');
+  const busDrivers = [
+    // AV Bus Drivers (AV1 - AV13)
+    { driverId: 'D001', name: 'Ramesh Kumar', phone: '+91-9876543210', license: 'TN-DL-001' },
+    { driverId: 'D002', name: 'Suresh Babu', phone: '+91-9876543211', license: 'TN-DL-002' },
+    { driverId: 'D003', name: 'Vijayan Nair', phone: '+91-9876543212', license: 'TN-DL-003' },
+    { driverId: 'D004', name: 'Prakash Kumar', phone: '+91-9876543213', license: 'TN-DL-004' },
+    { driverId: 'D005', name: 'Rajesh Singh', phone: '+91-9876543214', license: 'TN-DL-005' },
+    { driverId: 'D006', name: 'Murugan S', phone: '+91-9876543215', license: 'TN-DL-006' },
+    { driverId: 'D007', name: 'Kumar Swamy', phone: '+91-9876543216', license: 'TN-DL-007' },
+    { driverId: 'D008', name: 'Selvam R', phone: '+91-9876543217', license: 'TN-DL-008' },
+    { driverId: 'D009', name: 'Ganesan M', phone: '+91-9876543218', license: 'TN-DL-009' },
+    { driverId: 'D010', name: 'Karthik P', phone: '+91-9876543219', license: 'TN-DL-010' },
+    { driverId: 'D011', name: 'Senthil Kumar', phone: '+91-9876543220', license: 'TN-DL-011' },
+    { driverId: 'D012', name: 'Aravind Raj', phone: '+91-9876543221', license: 'TN-DL-012' },
+    { driverId: 'D013', name: 'Balakrishnan P', phone: '+91-9876543222', license: 'TN-DL-013' },
+    
+    // P Bus Drivers (P1 - P3)
+    { driverId: 'D014', name: 'Manoj Kumar', phone: '+91-9876543223', license: 'TN-DL-014' },
+    { driverId: 'D015', name: 'Vijay Kumar', phone: '+91-9876543224', license: 'TN-DL-015' },
+    { driverId: 'D016', name: 'Anand Raj', phone: '+91-9876543225', license: 'TN-DL-016' },
+  ];
+
+  for (const driver of busDrivers) {
+    await prisma.driver.upsert({
+      where: { driverId: driver.driverId },
+      update: {},
+      create: driver,
+    });
+  }
+
+  console.log('✅ Bus drivers created');
+
   // Create Buses
   console.log('Creating buses...');
   const buses = [
-    // AV Buses (AV1 - AV11)
-    { busId: 'AV1', driverName: 'Ramesh Kumar', route: 'Ettimadai - Coimbatore North', currentLat: 10.9027, currentLng: 76.9015, status: 'ACTIVE', speed: 40 },
-    { busId: 'AV2', driverName: 'Suresh Babu', route: 'Ettimadai - Coimbatore South', currentLat: 10.7827, currentLng: 76.6515, status: 'ACTIVE', speed: 35 },
-    { busId: 'AV3', driverName: 'Vijayan Nair', route: 'Ettimadai - Palakkad Route 1', currentLat: 10.7750, currentLng: 76.6540, status: 'ACTIVE', speed: 38 },
-    { busId: 'AV4', driverName: 'Prakash Kumar', route: 'Ettimadai - Palakkad Route 2', currentLat: 10.7800, currentLng: 76.6570, status: 'ACTIVE', speed: 42 },
-    { busId: 'AV5', driverName: 'Rajesh Singh', route: 'Ettimadai - Thrissur', currentLat: 10.5200, currentLng: 76.2100, status: 'ACTIVE', speed: 45 },
-    { busId: 'AV6', driverName: 'Murugan S', route: 'Ettimadai - Pollachi', currentLat: 10.6580, currentLng: 77.0080, status: 'ACTIVE', speed: 40 },
-    { busId: 'AV7', driverName: 'Kumar Swamy', route: 'Ettimadai - Tiruppur', currentLat: 11.1075, currentLng: 77.3410, status: 'ACTIVE', speed: 48 },
-    { busId: 'AV8', driverName: 'Selvam R', route: 'Ettimadai - Erode', currentLat: 11.3410, currentLng: 77.7172, status: 'ACTIVE', speed: 50 },
-    { busId: 'AV9', driverName: 'Ganesan M', route: 'Ettimadai - Salem', currentLat: 11.6643, currentLng: 78.1460, status: 'ACTIVE', speed: 52 },
-    { busId: 'AV10', driverName: 'Karthik P', route: 'Ettimadai - Ooty Route', currentLat: 11.4120, currentLng: 76.6950, status: 'ACTIVE', speed: 35 },
-    { busId: 'AV11', driverName: 'Senthil Kumar', route: 'Ettimadai - Mettupalayam', currentLat: 11.2989, currentLng: 76.9382, status: 'ACTIVE', speed: 38 },
+    // AV Buses (AV1 - AV13)
+    { busId: 'AV1', driverName: 'Ramesh Kumar', driverId: 'D001', route: 'Ettimadai - Coimbatore North', currentLat: 10.9027, currentLng: 76.9015, status: 'ACTIVE', speed: 40 },
+    { busId: 'AV2', driverName: 'Suresh Babu', driverId: 'D002', route: 'Ettimadai - Coimbatore South', currentLat: 10.7827, currentLng: 76.6515, status: 'ACTIVE', speed: 35 },
+    { busId: 'AV3', driverName: 'Vijayan Nair', driverId: 'D003', route: 'Ettimadai - Palakkad Route 1', currentLat: 10.7750, currentLng: 76.6540, status: 'ACTIVE', speed: 38 },
+    { busId: 'AV4', driverName: 'Prakash Kumar', driverId: 'D004', route: 'Ettimadai - Palakkad Route 2', currentLat: 10.7800, currentLng: 76.6570, status: 'ACTIVE', speed: 42 },
+    { busId: 'AV5', driverName: 'Rajesh Singh', driverId: 'D005', route: 'Ettimadai - Thrissur', currentLat: 10.5200, currentLng: 76.2100, status: 'ACTIVE', speed: 45 },
+    { busId: 'AV6', driverName: 'Murugan S', driverId: 'D006', route: 'Ettimadai - Pollachi', currentLat: 10.6580, currentLng: 77.0080, status: 'ACTIVE', speed: 40 },
+    { busId: 'AV7', driverName: 'Kumar Swamy', driverId: 'D007', route: 'Ettimadai - Tiruppur', currentLat: 11.1075, currentLng: 77.3410, status: 'ACTIVE', speed: 48 },
+    { busId: 'AV8', driverName: 'Selvam R', driverId: 'D008', route: 'Ettimadai - Erode', currentLat: 11.3410, currentLng: 77.7172, status: 'ACTIVE', speed: 50 },
+    { busId: 'AV9', driverName: 'Ganesan M', driverId: 'D009', route: 'Ettimadai - Salem', currentLat: 11.6643, currentLng: 78.1460, status: 'ACTIVE', speed: 52 },
+    { busId: 'AV10', driverName: 'Karthik P', driverId: 'D010', route: 'Ettimadai - Ooty Route', currentLat: 11.4120, currentLng: 76.6950, status: 'ACTIVE', speed: 35 },
+    { busId: 'AV11', driverName: 'Senthil Kumar', driverId: 'D011', route: 'Ettimadai - Mettupalayam', currentLat: 11.2989, currentLng: 76.9382, status: 'ACTIVE', speed: 38 },
+    { busId: 'AV12', driverName: 'Aravind Raj', driverId: 'D012', route: 'Ettimadai - Dindigul', currentLat: 10.3673, currentLng: 77.9803, status: 'ACTIVE', speed: 46 },
+    { busId: 'AV13', driverName: 'Balakrishnan P', driverId: 'D013', route: 'Ettimadai - Madurai Route', currentLat: 9.9252, currentLng: 78.1198, status: 'ACTIVE', speed: 44 },
     
     // P Buses (P1 - P3)
-    { busId: 'P1', driverName: 'Manoj Kumar', route: 'Ettimadai - Coimbatore Premium 1', currentLat: 10.8527, currentLng: 76.8015, status: 'ACTIVE', speed: 45 },
-    { busId: 'P2', driverName: 'Vijay Kumar', route: 'Ettimadai - Coimbatore Premium 2', currentLat: 10.7327, currentLng: 76.6015, status: 'ACTIVE', speed: 38 },
-    { busId: 'P3', driverName: 'Anand Raj', route: 'Ettimadai - Palakkad Premium', currentLat: 10.7850, currentLng: 76.6500, status: 'ACTIVE', speed: 42 },
+    { busId: 'P1', driverName: 'Manoj Kumar', driverId: 'D014', route: 'Ettimadai - Coimbatore Premium 1', currentLat: 10.8527, currentLng: 76.8015, status: 'ACTIVE', speed: 45 },
+    { busId: 'P2', driverName: 'Vijay Kumar', driverId: 'D015', route: 'Ettimadai - Coimbatore Premium 2', currentLat: 10.7327, currentLng: 76.6015, status: 'ACTIVE', speed: 38 },
+    { busId: 'P3', driverName: 'Anand Raj', driverId: 'D016', route: 'Ettimadai - Palakkad Premium', currentLat: 10.7850, currentLng: 76.6500, status: 'ACTIVE', speed: 42 },
   ];
 
   for (const bus of buses) {
@@ -382,7 +418,7 @@ async function main() {
     });
   }
 
-  console.log('✅ 14 Buses created (AV1-AV11, P1-P3)');
+  console.log('✅ 16 Buses created (AV1-AV13, P1-P3)');
 
   // Create Announcements
   console.log('Creating announcements...');

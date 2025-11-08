@@ -36,6 +36,15 @@ export default function BusTrackingModule({ userRole, buses: initialBuses }: Bus
   const [selectedBus, setSelectedBus] = useState<any>(null);
   const [loading, setLoading] = useState(!initialBuses);
   const [isClient, setIsClient] = useState(false);
+  const [showAddBusModal, setShowAddBusModal] = useState(false);
+  const [newBus, setNewBus] = useState({
+    busId: '',
+    driverName: '',
+    driverPhone: '',
+    route: '',
+    currentLat: 10.9027,
+    currentLng: 76.9015,
+  });
 
   useEffect(() => {
     setIsClient(true);
@@ -84,6 +93,41 @@ export default function BusTrackingModule({ userRole, buses: initialBuses }: Bus
 
   const refreshLocation = async () => {
     await loadBuses();
+  };
+
+  const handleCallDriver = (phone: string) => {
+    if (phone && phone !== 'N/A') {
+      window.location.href = `tel:${phone}`;
+    } else {
+      alert('Driver phone number not available');
+    }
+  };
+
+  const handleOpenInGoogleMaps = (lat: number, lng: number) => {
+    const url = `https://www.google.com/maps?q=${lat},${lng}`;
+    window.open(url, '_blank');
+  };
+
+  const handleAddBus = async () => {
+    try {
+      const response = await axios.post('/api/buses', newBus);
+      if (response.data.success) {
+        alert('Bus added successfully!');
+        setShowAddBusModal(false);
+        setNewBus({
+          busId: '',
+          driverName: '',
+          driverPhone: '',
+          route: '',
+          currentLat: 10.9027,
+          currentLng: 76.9015,
+        });
+        await loadBuses();
+      }
+    } catch (error) {
+      console.error('Error adding bus:', error);
+      alert('Failed to add bus');
+    }
   };
 
   // Custom bus icon using Leaflet
@@ -154,9 +198,19 @@ export default function BusTrackingModule({ userRole, buses: initialBuses }: Bus
             Real-time location tracking with OpenStreetMap
           </p>
         </div>
-        <button onClick={refreshLocation} className="btn-primary bg-amrita-orange hover:bg-orange-600">
-          🔄 Refresh Locations
-        </button>
+        <div className="flex gap-2">
+          <button onClick={refreshLocation} className="btn-primary bg-amrita-orange hover:bg-orange-600">
+            🔄 Refresh Locations
+          </button>
+          {userRole === 'admin' && (
+            <button 
+              onClick={() => setShowAddBusModal(true)} 
+              className="btn-primary bg-amrita-blue hover:bg-blue-700"
+            >
+              ➕ Add Bus
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Bus Selection Cards */}
@@ -240,8 +294,8 @@ export default function BusTrackingModule({ userRole, buses: initialBuses }: Bus
                         <div className="p-2">
                           <h4 className="font-bold text-lg text-amrita-orange">{selectedBus.id}</h4>
                           <p className="text-sm mt-1">👨‍✈️ {selectedBus.driverName}</p>
-                          <p className="text-sm">� {selectedBus.driverPhone}</p>
-                          <p className="text-sm">�🗺️ {selectedBus.route}</p>
+                          <p className="text-sm">📞 <a href={`tel:${selectedBus.driverPhone || ''}`} className="text-blue-600 hover:underline">{selectedBus.driverPhone || 'N/A'}</a></p>
+                          <p className="text-sm">🗺️ {selectedBus.route}</p>
                           <p className="text-sm">👥 {selectedBus.students} students</p>
                           <p className="text-sm">⚡ {selectedBus.speed} km/h</p>
                           <p className="text-xs text-gray-500 mt-2">
@@ -324,7 +378,46 @@ export default function BusTrackingModule({ userRole, buses: initialBuses }: Bus
 
                 <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <span className="text-sm font-medium flex items-center gap-2">
-                    <span>📍</span> Status
+                    <span>📞</span> Phone
+                  </span>
+                  <button
+                    onClick={() => window.open(`tel:${selectedBus.driverPhone}`)}
+                    className="font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                  >
+                    {selectedBus.driverPhone}
+                  </button>
+                </div>
+
+                <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <span className="text-sm font-medium flex items-center gap-2">
+                    <span>📞</span> Phone
+                  </span>
+                  <button
+                    onClick={() => handleCallDriver(selectedBus.driverPhone)}
+                    className="font-bold text-amrita-blue hover:underline flex items-center gap-1"
+                  >
+                    {selectedBus.driverPhone || 'N/A'}
+                    {selectedBus.driverPhone && selectedBus.driverPhone !== 'N/A' && (
+                      <span className="text-green-500">📱</span>
+                    )}
+                  </button>
+                </div>
+
+                <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <span className="text-sm font-medium flex items-center gap-2">
+                    <span>�</span> Phone
+                  </span>
+                  <a 
+                    href={`tel:${selectedBus.driverPhone}`}
+                    className="font-bold text-amrita-blue hover:underline"
+                  >
+                    {selectedBus.driverPhone || 'N/A'}
+                  </a>
+                </div>
+
+                <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <span className="text-sm font-medium flex items-center gap-2">
+                    <span>�📍</span> Status
                   </span>
                   <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                     selectedBus.status === 'Active' 
@@ -367,6 +460,15 @@ export default function BusTrackingModule({ userRole, buses: initialBuses }: Bus
                     <p className="text-xs font-mono text-gray-600 dark:text-gray-400">
                       Lng: {selectedBus?.currentLocation?.lng?.toFixed(6) || 'N/A'}
                     </p>
+                    <button
+                      onClick={() => handleOpenInGoogleMaps(
+                        selectedBus.currentLocation.lat,
+                        selectedBus.currentLocation.lng
+                      )}
+                      className="text-xs bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors mt-2 w-full flex items-center justify-center gap-1"
+                    >
+                      🗺️ Open in Google Maps
+                    </button>
                   </div>
                 </div>
 
@@ -380,13 +482,16 @@ export default function BusTrackingModule({ userRole, buses: initialBuses }: Bus
 
               {userRole === 'admin' && (
                 <div className="space-y-2 pt-2">
-                  <button className="w-full btn-primary bg-amrita-orange hover:bg-orange-600 flex items-center justify-center gap-2">
-                    <span>💬</span>
-                    Send Message to Driver
-                  </button>
-                  <button className="w-full btn-secondary flex items-center justify-center gap-2">
+                  <button 
+                    onClick={() => handleCallDriver(selectedBus.driverPhone)}
+                    className="w-full btn-primary bg-green-600 hover:bg-green-700 flex items-center justify-center gap-2"
+                  >
                     <span>📞</span>
                     Call Driver
+                  </button>
+                  <button className="w-full btn-secondary flex items-center justify-center gap-2">
+                    <span>�</span>
+                    Send Message
                   </button>
                 </div>
               )}
@@ -465,6 +570,117 @@ export default function BusTrackingModule({ userRole, buses: initialBuses }: Bus
           </table>
         </div>
       </div>
+
+      {/* Add Bus Modal */}
+      {showAddBusModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <span>🚌</span>
+                  Add New Bus
+                </h3>
+                <button
+                  onClick={() => setShowAddBusModal(false)}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Bus ID *</label>
+                  <input
+                    type="text"
+                    value={newBus.busId}
+                    onChange={(e) => setNewBus({ ...newBus, busId: e.target.value })}
+                    placeholder="e.g., AV14, P4"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amrita-orange dark:bg-gray-700"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Driver Name *</label>
+                  <input
+                    type="text"
+                    value={newBus.driverName}
+                    onChange={(e) => setNewBus({ ...newBus, driverName: e.target.value })}
+                    placeholder="Driver's full name"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amrita-orange dark:bg-gray-700"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Driver Phone *</label>
+                  <input
+                    type="tel"
+                    value={newBus.driverPhone}
+                    onChange={(e) => setNewBus({ ...newBus, driverPhone: e.target.value })}
+                    placeholder="+91-9876543210"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amrita-orange dark:bg-gray-700"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Route *</label>
+                  <input
+                    type="text"
+                    value={newBus.route}
+                    onChange={(e) => setNewBus({ ...newBus, route: e.target.value })}
+                    placeholder="e.g., Ettimadai - Coimbatore North"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amrita-orange dark:bg-gray-700"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Starting Latitude</label>
+                    <input
+                      type="number"
+                      step="0.000001"
+                      value={newBus.currentLat}
+                      onChange={(e) => setNewBus({ ...newBus, currentLat: parseFloat(e.target.value) })}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amrita-orange dark:bg-gray-700"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Starting Longitude</label>
+                    <input
+                      type="number"
+                      step="0.000001"
+                      value={newBus.currentLng}
+                      onChange={(e) => setNewBus({ ...newBus, currentLng: parseFloat(e.target.value) })}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amrita-orange dark:bg-gray-700"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3 mt-6">
+                  <button
+                    onClick={handleAddBus}
+                    className="flex-1 bg-amrita-orange hover:bg-orange-600 text-white py-3 px-6 rounded-lg font-semibold transition-colors"
+                    disabled={!newBus.busId || !newBus.driverName || !newBus.route}
+                  >
+                    ✓ Add Bus
+                  </button>
+                  <button
+                    onClick={() => setShowAddBusModal(false)}
+                    className="flex-1 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-white py-3 px-6 rounded-lg font-semibold transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add custom CSS for animations */}
       <style jsx>{`

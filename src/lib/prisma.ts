@@ -1,4 +1,4 @@
-// Database connection using Neon PostgreSQL with Prisma - Optimized for Vercel
+// Database connection using SQLite with Prisma - Optimized for Vercel and local development
 import { PrismaClient } from '@prisma/client';
 
 // Lazily initialize Prisma Client to avoid side-effects during module
@@ -9,9 +9,19 @@ import { PrismaClient } from '@prisma/client';
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 function createPrismaClient() {
-  return new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  console.log('🔄 Initializing Prisma client...');
+  
+  const client = new PrismaClient({
+    log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL
+      }
+    }
   });
+
+  console.log('✅ Prisma client initialized successfully');
+  return client;
 }
 
 // Lazy proxy that constructs the real PrismaClient on first property access.
@@ -24,7 +34,7 @@ const prismaProxy = new Proxy({} as PrismaClient, {
       } catch (err) {
         // Log and rethrow on first attempt to create so it's visible,
         // but avoid throwing during mere module import if possible.
-        console.error('Prisma client initialization failed:', err);
+        console.error('❌ Prisma client initialization failed:', err);
         throw err;
       }
     }
@@ -45,11 +55,18 @@ const prismaProxy = new Proxy({} as PrismaClient, {
 // Connection test function
 export async function testConnection() {
   try {
+    console.log('🧪 Testing database connection...');
     // ensure client is created and connected
     const client = (globalForPrisma.prisma ?? createPrismaClient()) as PrismaClient;
     globalForPrisma.prisma = client;
+    
     await client.$connect();
     console.log('✅ Database connected successfully');
+    
+    // Test with a simple query
+    const userCount = await client.user.count();
+    console.log(`📊 Database test query successful. Found ${userCount} users.`);
+    
     return true;
   } catch (error) {
     console.error('❌ Database connection failed:', error);
@@ -60,8 +77,17 @@ export async function testConnection() {
 // Graceful shutdown
 export async function disconnectDB() {
   if (globalForPrisma.prisma) {
+    console.log('🔌 Gracefully disconnecting from database...');
     await globalForPrisma.prisma.$disconnect();
+    console.log('✅ Database disconnected successfully');
   }
+}
+
+// Initialize connection on import (but don't fail if it doesn't work)
+if (process.env.NODE_ENV !== 'test') {
+  testConnection().catch((error) => {
+    console.error('⚠️ Initial database connection test failed:', error.message);
+  });
 }
 
 export default prismaProxy;

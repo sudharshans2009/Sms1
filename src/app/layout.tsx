@@ -1,9 +1,9 @@
 import './globals.css'
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import Script from 'next/script'
 
-const inter = Inter({ subsets: ['latin'] })
+// Using system font stack instead of Google Fonts to avoid network dependency
+const fontClass = 'font-sans'
 
 export const metadata: Metadata = {
   title: 'Amrita Vidyalayam - School Management System',
@@ -32,7 +32,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={inter.className}>{children}</body>
+      <body className={fontClass}>{children}</body>
     </html>
   )
 }
